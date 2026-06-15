@@ -3,7 +3,12 @@
 /// Main loop task handle and wake helpers — shared between wake.h (C++) and lwip_fast_select.c (C).
 /// esphome_main_task_handle is set once during Application::setup() via xTaskGetCurrentTaskHandle().
 
-#if defined(USE_ESP32) || defined(USE_LIBRETINY)
+#if defined(USE_ESP32) || defined(USE_LIBRETINY) || defined(USE_SG2000)
+
+#ifdef USE_SG2000
+#include "FreeRTOS.h"
+#include "task.h"
+#endif
 
 #ifdef USE_ESP32
 #include <freertos/FreeRTOS.h>
@@ -41,4 +46,4 @@ __attribute__((always_inline)) static inline void esphome_main_task_notify_from_
 }
 #endif
 
-#endif  // USE_ESP32 || USE_LIBRETINY
+#endif  // USE_ESP32 || USE_LIBRETINY || USE_SG2000

@@ -49,6 +49,11 @@
 #include <semphr.h>
 #endif
 
+#ifdef USE_SG2000
+#include "FreeRTOS.h"
+#include "semphr.h"
+#endif
+
 #ifdef USE_HOST
 #include <mutex>
 #endif
@@ -1876,7 +1881,6 @@ template<typename T> class Parented {
 
 /// @name System APIs
 ///@{
-
 /** Mutex implementation, with API based on the unavailable std::mutex.
  *
  * @note This mutex is non-recursive, so take care not to try to obtain the mutex while it is already taken.
@@ -1893,7 +1897,7 @@ class Mutex {
   void lock() {}
   bool try_lock() { return true; }
   void unlock() {}
-#elif defined(USE_ESP32) || defined(USE_LIBRETINY)
+#elif defined(USE_ESP32) || defined(USE_LIBRETINY) || defined(USE_SG2000)
   // FreeRTOS platforms: inline to avoid out-of-line call overhead.
   Mutex() { handle_ = xSemaphoreCreateMutex(); }
   ~Mutex() = default;

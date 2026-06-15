@@ -4,7 +4,7 @@ from enum import Enum
 
 from esphome.enum import StrEnum
 
-__version__ = "2026.5.0-dev"
+__version__ = "2026.5.3"
 
 ALLOWED_NAME_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789-_"
 VALID_SUBSTITUTIONS_CHARACTERS = (
@@ -13,6 +13,13 @@ VALID_SUBSTITUTIONS_CHARACTERS = (
 
 # CLI Help Text Constants
 ARGUMENT_HELP_DEVICE = "Manually specify the serial port/address to use, for example /dev/ttyUSB0. Can be specified multiple times for fallback addresses. Use 'OTA' for resolving from MQTT, DNS or mDNS and avoiding the interactive prompt."
+
+
+class Toolchain(StrEnum):
+    """Toolchain identifiers for ESPHome."""
+
+    PLATFORMIO = "platformio"
+    ESP_IDF = "esp-idf"
 
 
 class Platform(StrEnum):
@@ -27,6 +34,7 @@ class Platform(StrEnum):
     NRF52 = "nrf52"
     RP2040 = "rp2040"
     RTL87XX = "rtl87xx"
+    SG2000 = "sg2000"
 
 
 class Framework(StrEnum):
@@ -34,6 +42,7 @@ class Framework(StrEnum):
 
     ARDUINO = "arduino"
     ESP_IDF = "esp-idf"
+    FREERTOS = "freertos"
     NATIVE = "host"
     ZEPHYR = "zephyr"
 
@@ -89,6 +98,9 @@ class PlatformFramework(Enum):
     # Host platform (native)
     HOST_NATIVE = (Platform.HOST, Framework.NATIVE)
 
+    # SG2000 platform
+    SG2000_FREERTOS = (Platform.SG2000, Framework.FREERTOS)
+
 
 # Maintain backward compatibility by reassigning after enum definition
 PLATFORM_BK72XX = Platform.BK72XX
@@ -100,6 +112,7 @@ PLATFORM_LN882X = Platform.LN882X
 PLATFORM_NRF52 = Platform.NRF52
 PLATFORM_RP2040 = Platform.RP2040
 PLATFORM_RTL87XX = Platform.RTL87XX
+PLATFORM_SG2000 = Platform.SG2000
 
 
 SOURCE_FILE_EXTENSIONS = {".cpp", ".hpp", ".h", ".c", ".tcc", ".ino"}
@@ -1036,6 +1049,7 @@ CONF_TO = "to"
 CONF_TO_NTC_RESISTANCE = "to_ntc_resistance"
 CONF_TO_NTC_TEMPERATURE = "to_ntc_temperature"
 CONF_TOLERANCE = "tolerance"
+CONF_TOOLCHAIN = "toolchain"
 CONF_TOPIC = "topic"
 CONF_TOPIC_PREFIX = "topic_prefix"
 CONF_TOTAL = "total"
@@ -1232,6 +1246,7 @@ UNIT_KILOVOLT_AMPS_REACTIVE_HOURS = "kvarh"
 UNIT_KILOWATT = "kW"
 UNIT_KILOWATT_HOURS = "kWh"
 UNIT_LITRE = "L"
+UNIT_LITRE_PER_SECOND = "L/s"
 UNIT_LUX = "lx"
 UNIT_MEGAJOULE = "MJ"
 UNIT_METER = "m"
@@ -1393,7 +1408,6 @@ KEY_FRAMEWORK_VERSION = "framework_version"
 KEY_NAME = "name"
 KEY_VARIANT = "variant"
 KEY_PAST_SAFE_MODE = "past_safe_mode"
-KEY_NATIVE_IDF = "native_idf"
 
 # Entity categories
 ENTITY_CATEGORY_NONE = ""
@@ -1407,3 +1421,12 @@ ENTITY_CATEGORY_DIAGNOSTIC = "diagnostic"
 # The corresponding constant exists in c++
 # when update_interval is set to never, it becomes SCHEDULER_DONT_RUN milliseconds
 SCHEDULER_DONT_RUN = 4294967295
+
+# Sentinel values written by the esphome-device-builder dashboard into
+# secrets.yaml on first boot so that !secret wifi_ssid / !secret wifi_password
+# references resolve cleanly through validation before the user has finished
+# the onboarding wizard. Compilation refuses if these reach the binary so that
+# a user who dismisses onboarding can't accidentally flash a device that will
+# never associate with their wifi.
+PLACEHOLDER_WIFI_SSID = "REPLACE_WITH_YOUR_WIFI_NETWORK"
+PLACEHOLDER_WIFI_PASSWORD = "REPLACE_WITH_YOUR_WIFI_PASSWORD"  # noqa: S105
