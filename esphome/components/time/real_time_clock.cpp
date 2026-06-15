@@ -1,6 +1,6 @@
 #include "real_time_clock.h"
 #include "esphome/core/log.h"
-#ifdef USE_HOST
+#if defined(USE_HOST) || defined(USE_SG2000)
 #include <sys/time.h>
 #elif defined(USE_ZEPHYR)
 #include <zephyr/posix/time.h>
