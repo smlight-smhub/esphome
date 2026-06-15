@@ -20,12 +20,15 @@
 #include "esphome/components/host/preference_backend.h"
 #elif defined(USE_ZEPHYR) && defined(CONFIG_SETTINGS)
 #include "esphome/components/zephyr/preference_backend.h"
+#elif defined(USE_SG2000)
+#include "esphome/components/sg2000/preference_backend.h"
+using ESPPreferenceBackend = esphome::sg2000::SG2000PreferenceBackend;
 #endif
 
 namespace esphome {
 
 #if !defined(USE_ESP32) && !defined(USE_ESP8266) && !defined(USE_RP2040) && !defined(USE_LIBRETINY) && \
-    !defined(USE_HOST) && !(defined(USE_ZEPHYR) && defined(CONFIG_SETTINGS))
+    !defined(USE_HOST) && !(defined(USE_ZEPHYR) && defined(CONFIG_SETTINGS)) && !defined(USE_SG2000)
 // Stub for static analysis when no platform is defined.
 struct PreferenceBackend {
   bool save(const uint8_t *, size_t) { return false; }
