@@ -6,6 +6,10 @@
 #include "esphome/core/application.h"
 #include "esphome/core/controller_registry.h"
 #include "esphome/core/defines.h"
+
+#include "gen/rpc.pb.h"
+#include <pb_encode.h>
+
 #include "esphome/core/hal.h"
 #include "esphome/core/log.h"
 #include "esphome/core/util.h"
@@ -29,11 +33,6 @@ static const char *const TAG = "api";
 APIServer *global_api_server = nullptr;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 APIServer::APIServer() { global_api_server = this; }
-
-// Custom deleter defined here so `delete` sees the complete APIConnection type.
-// This prevents libc++ from emitting an "incomplete type" error when other
-// translation units only have the forward declaration of APIConnection.
-void APIServer::APIConnectionDeleter::operator()(APIConnection *p) const { delete p; }
 
 void APIServer::socket_failed_(const LogString *msg) {
   ESP_LOGW(TAG, "Socket %s: errno %d", LOG_STR_ARG(msg), errno);
@@ -115,6 +114,8 @@ void APIServer::setup() {
   if (this->reboot_timeout_ != 0) {
     this->status_set_warning(LOG_STR("waiting for client connection"));
   }
+
+  this->sync_broker_config();
 }
 
 void APIServer::loop() {
@@ -742,6 +743,35 @@ void APIServer::send_action_response(uint32_t action_call_id, bool success, Stri
 }
 #endif  // USE_API_USER_DEFINED_ACTION_RESPONSES_JSON
 #endif  // USE_API_USER_DEFINED_ACTION_RESPONSES
+
+extern "C" {
+  bool smhub_ipc_send_rpc(const smhub_hal_rpc_RpcCommand *cmd);
+}
+
+void APIServer::set_noise_psk(std::vector<uint8_t> psk) {
+  this->smhub_psk_ = psk;
+}
+
+void APIServer::sync_broker_config() {
+  smhub_hal_rpc_RpcCommand cmd = smhub_hal_rpc_RpcCommand_init_zero;
+  cmd.type = smhub_hal_rpc_CommandType_API_CONFIG_SYNC;
+  cmd.has_api_config = true;
+  cmd.api_config.port = this->port_;
+  cmd.api_config.noise_psk.size = std::min((size_t)32, this->smhub_psk_.size());
+  memcpy(cmd.api_config.noise_psk.bytes, this->smhub_psk_.data(), cmd.api_config.noise_psk.size);
+
+  const auto &name = App.get_name();
+  cmd.api_config.device_name.funcs.encode = [](pb_ostream_t *stream, const pb_field_t *field, void *const *arg) -> bool {
+      const char *str = (const char *)*arg;
+      if (!pb_encode_tag_for_field(stream, field)) return false;
+      return pb_encode_string(stream, (uint8_t *)str, strlen(str));
+  };
+  cmd.api_config.device_name.arg = (void *)name.c_str();
+
+  if (smhub_ipc_send_rpc(&cmd)) {
+    ESP_LOGI("api", "Sent API_CONFIG_SYNC to broker (psk size: %d, port: %d)", cmd.api_config.noise_psk.size, this->port_);
+  }
+}
 
 }  // namespace esphome::api
 #endif

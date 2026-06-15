@@ -1,5 +1,5 @@
 #include "esphome/core/defines.h"
-#if defined(USE_HOST) && defined(USE_MDNS)
+#if (defined(USE_HOST) || defined(USE_SG2000)) && defined(USE_MDNS)
 
 #include "esphome/components/network/ip_address.h"
 #include "esphome/components/network/util.h"
