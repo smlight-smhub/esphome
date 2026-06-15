@@ -1,6 +1,6 @@
 #include "esphome/core/defines.h"
 
-#if defined(USE_ESP32) || defined(USE_LIBRETINY)
+#if defined(USE_ESP32) || defined(USE_LIBRETINY) || defined(USE_SG2000)
 
 #include "esphome/core/hal.h"
 #include "esphome/core/wake.h"
@@ -30,4 +30,4 @@ void IRAM_ATTR wake_loop_any_context() { wake_main_task_any_context(); }
 
 }  // namespace esphome
 
-#endif  // USE_ESP32 || USE_LIBRETINY
+#endif  // USE_ESP32 || USE_LIBRETINY || USE_SG2000

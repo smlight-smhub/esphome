@@ -2,10 +2,15 @@
 
 #include "esphome/core/defines.h"
 
-#if defined(USE_ESP32) || defined(USE_LIBRETINY)
+#if defined(USE_ESP32) || defined(USE_LIBRETINY) || defined(USE_SG2000)
 
 #include "esphome/core/hal.h"
 #include "esphome/core/main_task.h"
+
+#if defined(USE_SG2000)
+#include "FreeRTOS.h"
+#include "task.h"
+#endif
 
 namespace esphome {
 
@@ -57,4 +62,4 @@ inline void ESPHOME_ALWAYS_INLINE wakeable_delay(uint32_t ms) {
 
 }  // namespace esphome
 
-#endif  // USE_ESP32 || USE_LIBRETINY
+#endif  // USE_ESP32 || USE_LIBRETINY || USE_SG2000

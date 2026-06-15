@@ -1,0 +1,3 @@
+# Copyright 2026 SMLIGHT
+
+KEY_SG2000 = "sg2000"
