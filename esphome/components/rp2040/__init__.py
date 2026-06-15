@@ -48,7 +48,21 @@ def board_has_wifi() -> bool:
     Returns True for unknown/custom boards to avoid rejecting valid
     configurations for boards not in the generated list.
     """
-    board_info = boards.BOARDS.get(get_board())
+    return board_id_has_wifi(get_board())
+
+
+def board_id_has_wifi(board_id: str) -> bool:
+    """Return True if *board_id* has WiFi (CYW43 wireless chip).
+
+    Returns True for unknown/custom boards to avoid rejecting valid
+    configurations for boards not in the generated list.
+
+    Used by device-builder (esphome/device-builder) — separate
+    explicit-arg helper so callers outside the compile pipeline
+    don't need ``CORE`` set up to query the board map. Please keep
+    the signature stable.
+    """
+    board_info = boards.BOARDS.get(board_id)
     if board_info is None:
         return True
     return board_info.get("wifi", False)
@@ -125,7 +139,7 @@ def _parse_platform_version(value):
 # The default/recommended arduino framework version
 #  - https://github.com/earlephilhower/arduino-pico/releases
 #  - https://api.registry.platformio.org/v3/packages/earlephilhower/tool/framework-arduinopico
-RECOMMENDED_ARDUINO_FRAMEWORK_VERSION = cv.Version(5, 5, 1)
+RECOMMENDED_ARDUINO_FRAMEWORK_VERSION = cv.Version(5, 6, 0)
 
 # The raspberrypi platform version to use for arduino frameworks
 #  - https://github.com/maxgerhardt/platform-raspberrypi/tags
@@ -135,8 +149,8 @@ RECOMMENDED_ARDUINO_PLATFORM_VERSION = "v1.4.0-gcc14-arduinopico460"
 def _arduino_check_versions(value):
     value = value.copy()
     lookups = {
-        "dev": (cv.Version(5, 5, 1), "https://github.com/earlephilhower/arduino-pico"),
-        "latest": (cv.Version(5, 5, 1), None),
+        "dev": (cv.Version(5, 6, 0), "https://github.com/earlephilhower/arduino-pico"),
+        "latest": (cv.Version(5, 6, 0), None),
         "recommended": (RECOMMENDED_ARDUINO_FRAMEWORK_VERSION, None),
     }
 
@@ -388,18 +402,21 @@ def _generate_lwipopts_h() -> None:
     in the build directory, and a pre-build script injects this directory
     into the compiler include path before the framework's own include dir.
     """
-    from jinja2 import Environment, FileSystemLoader
+    from jinja2 import Environment
 
     lwip_defines = CORE.data[KEY_RP2040].get(KEY_LWIP_OPTS)
     if not lwip_defines:
         return
 
-    template_dir = Path(__file__).parent
-    jinja_env = Environment(
-        loader=FileSystemLoader(str(template_dir)),
-        keep_trailing_newline=True,
+    # Read the template via pathlib and render from a string rather than using
+    # FileSystemLoader. jinja2's loader joins the search path with posixpath, which
+    # breaks on Windows extended-length paths (\\?\C:\...) where forward slashes are
+    # not accepted, causing a spurious TemplateNotFound (see issue #16732).
+    template_text = (Path(__file__).parent / "lwipopts.h.jinja").read_text(
+        encoding="utf-8"
     )
-    template = jinja_env.get_template("lwipopts.h.jinja")
+    jinja_env = Environment(keep_trailing_newline=True)
+    template = jinja_env.from_string(template_text)
     content = template.render(**lwip_defines)
 
     lwip_dir = CORE.relative_build_path("lwip_override")
@@ -496,7 +513,7 @@ def process_stacktrace(config, line: str, backtrace_state: bool) -> bool:
 
     if backtrace_state:
         if match := _CRASH_ADDR_RE.search(line):
-            from esphome.platformio_api import get_idedata
+            from esphome.platformio.toolchain import get_idedata
 
             idedata = get_idedata(config)
             if idedata.addr2line_path:

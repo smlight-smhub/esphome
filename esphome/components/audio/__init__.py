@@ -16,6 +16,7 @@ from esphome.const import (
 from esphome.core import CORE
 import esphome.final_validate as fv
 
+AUTO_LOAD = ["ring_buffer"]
 CODEOWNERS = ["@kahrendt"]
 DOMAIN = "audio"
 audio_ns = cg.esphome_ns.namespace("audio")
@@ -334,7 +335,7 @@ async def to_code(config):
 
     add_idf_component(
         name="esphome/esp-audio-libs",
-        ref="2.0.4",
+        ref="3.0.0",
     )
 
     data = _get_data()
@@ -386,7 +387,7 @@ async def to_code(config):
     # Adds a define and IDF component for legacy `audio_decoder.cpp`.
     if data.flac_support:
         cg.add_define("USE_AUDIO_FLAC_SUPPORT")
-        add_idf_component(name="esphome/micro-flac", ref="0.1.1")
+        add_idf_component(name="esphome/micro-flac", ref="0.2.0")
         _emit_memory_pair(
             data.flac.buffer_memory,
             "CONFIG_MICRO_FLAC_PREFER_PSRAM",
@@ -394,7 +395,7 @@ async def to_code(config):
         )
     if data.mp3_support:
         cg.add_define("USE_AUDIO_MP3_SUPPORT")
-        add_idf_component(name="esphome/micro-mp3", ref="0.2.0")
+        add_idf_component(name="esphome/micro-mp3", ref="0.2.1")
         _emit_memory_pair(
             data.mp3.buffer_memory,
             "CONFIG_MP3_DECODER_PREFER_PSRAM",
@@ -402,7 +403,7 @@ async def to_code(config):
         )
     if data.opus_support:
         cg.add_define("USE_AUDIO_OPUS_SUPPORT")
-        add_idf_component(name="esphome/micro-opus", ref="0.4.0")
+        add_idf_component(name="esphome/micro-opus", ref="0.4.1")
         if data.opus.floating_point is not None:
             add_idf_sdkconfig_option(
                 "CONFIG_OPUS_FLOATING_POINT", data.opus.floating_point
@@ -429,3 +430,4 @@ async def to_code(config):
             )
     if data.wav_support:
         cg.add_define("USE_AUDIO_WAV_SUPPORT")
+        add_idf_component(name="esphome/micro-wav", ref="0.2.0")
