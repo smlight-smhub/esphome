@@ -117,6 +117,9 @@ void Logger::log_vprintf_non_main_thread_(uint8_t level, const char *tag, int li
 }
 #else
 // Implementation for single-task platforms (ESP8266, RP2040)
+#ifdef USE_SG2000
+extern "C" void uart_puts(const char* str);
+#endif
 // Logging calls are NOT thread-safe: global_recursion_guard_ is a plain bool and tx_buffer_ has no locking.
 // Not a problem in practice yet since Zephyr has no API support (logs are console-only).
 void HOT Logger::log_vprintf_(uint8_t level, const char *tag, int line, const char *format, va_list args) {  // NOLINT
@@ -243,6 +246,9 @@ void Logger::dump_config() {
 #endif
 #ifdef USE_ZEPHYR
   dump_crash_();
+  if (!device_is_ready(this->uart_dev_)) {
+    ESP_LOGE(TAG, "  %s is not ready.", LOG_STR_ARG(get_uart_selection_()));
+  }
 #endif
   // Warn users that VERBOSE/VERY_VERBOSE logging impacts performance.
   // Only the compiled log level matters — all log calls up to this level
