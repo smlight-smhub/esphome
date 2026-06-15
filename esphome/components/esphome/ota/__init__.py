@@ -130,6 +130,7 @@ CONFIG_SCHEMA = cv.All(
                 bk72xx=8892,
                 ln882x=8820,
                 rtl87xx=8892,
+                host=8082,
             ): cv.port,
             cv.Optional(CONF_ALLOW_PARTITION_ACCESS, default=False): cv.boolean,
             cv.Optional(CONF_PASSWORD): cv.string,
@@ -154,6 +155,10 @@ FINAL_VALIDATE_SCHEMA = ota_esphome_final_validate
 
 @coroutine_with_priority(CoroPriority.OTA_UPDATES)
 async def to_code(config: ConfigType) -> None:
+    from esphome.const import PLATFORM_SG2000
+    if CORE.target_platform == PLATFORM_SG2000:
+        return
+
     var = cg.new_Pvariable(config[CONF_ID])
     cg.add(var.set_port(config[CONF_PORT]))
 

@@ -194,4 +194,54 @@ extern BluetoothProxy *global_bluetooth_proxy;  // NOLINT(cppcoreguidelines-avoi
 
 }  // namespace esphome::bluetooth_proxy
 
+#else  // !USE_ESP32
+
+#include "esphome/core/component.h"
+#include "esphome/components/api/api_pb2.h"
+#include <span>
+
+namespace esphome {
+
+namespace api {
+class APIConnection;
+}
+
+namespace bluetooth_proxy {
+
+class BluetoothProxy : public Component {
+ public:
+  void setup() override;
+  void loop() override;
+
+  api::APIConnection *get_api_connection() { return nullptr; }
+  void unsubscribe_api_connection(api::APIConnection *conn) {}
+  void subscribe_api_connection(api::APIConnection *conn, uint32_t flags) {}
+  void bluetooth_device_request(const api::BluetoothDeviceRequest &msg) {}
+  void bluetooth_gatt_read(const api::BluetoothGATTReadRequest &msg) {}
+  void bluetooth_gatt_write(const api::BluetoothGATTWriteRequest &msg) {}
+  void bluetooth_gatt_read_descriptor(const api::BluetoothGATTReadDescriptorRequest &msg) {}
+  void bluetooth_gatt_write_descriptor(const api::BluetoothGATTWriteDescriptorRequest &msg) {}
+  void bluetooth_gatt_send_services(const api::BluetoothGATTGetServicesRequest &msg) {}
+  void bluetooth_gatt_notify(const api::BluetoothGATTNotifyRequest &msg) {}
+  void send_connections_free(api::APIConnection *conn) {}
+  void bluetooth_scanner_set_mode(bool active) {}
+  void bluetooth_set_connection_params(const api::BluetoothSetConnectionParamsRequest &msg) {}
+  
+  uint32_t get_feature_flags() { 
+      // 1 = PASSIVE_SCANNING
+      // 32 = RAW_ADVERTISEMENTS (1 << 5)
+      return 33; 
+  }
+  void get_bluetooth_mac_address_pretty(std::span<char, 18> output) {
+      if (output.size() >= 18) {
+          snprintf(output.data(), 18, "02:11:22:33:44:55");
+      }
+  }
+};
+
+extern BluetoothProxy *global_bluetooth_proxy;
+
+}  // namespace bluetooth_proxy
+}  // namespace esphome
+
 #endif  // USE_ESP32
