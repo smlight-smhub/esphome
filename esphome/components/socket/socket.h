@@ -10,7 +10,7 @@
 #include "esphome/core/lwip_fast_select.h"
 #endif
 
-#if defined(USE_SOCKET_IMPL_LWIP_TCP) || defined(USE_SOCKET_IMPL_LWIP_SOCKETS) || defined(USE_SOCKET_IMPL_BSD_SOCKETS)
+#if defined(USE_SOCKET_IMPL_LWIP_TCP) || defined(USE_SOCKET_IMPL_LWIP_SOCKETS) || defined(USE_SOCKET_IMPL_BSD_SOCKETS) || defined(USE_SOCKET_IMPL_RPMSG_SOCKETS)
 
 // Include only the active implementation's header.
 // SOCKADDR_STR_LEN is defined in headers.h.
@@ -20,6 +20,8 @@
 #include "lwip_sockets_impl.h"
 #elif defined(USE_SOCKET_IMPL_LWIP_TCP)
 #include "lwip_raw_tcp_impl.h"
+#elif defined(USE_SOCKET_IMPL_RPMSG_SOCKETS)
+#include "rpmsg_sockets_impl.h"
 #endif
 
 namespace esphome::socket {
@@ -38,6 +40,9 @@ using ListenSocket = LwIPSocketImpl;
 #elif defined(USE_SOCKET_IMPL_LWIP_TCP)
 using Socket = LWIPRawImpl;
 using ListenSocket = LWIPRawListenImpl;
+#elif defined(USE_SOCKET_IMPL_RPMSG_SOCKETS)
+using Socket = RPMSGSocketImpl;
+using ListenSocket = RPMSGSocketImpl;
 #endif
 
 #ifdef USE_LWIP_FAST_SELECT

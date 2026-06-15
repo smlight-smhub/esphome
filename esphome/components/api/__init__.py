@@ -305,6 +305,7 @@ CONFIG_SCHEMA = cv.All(
                 rtl87xx=4,  # Moderate RAM, BSD-style sockets
                 host=4,  # Abundant resources
                 ln882x=4,  # Moderate RAM
+                sg2000=4,
             ): cv.int_range(min=1, max=10),
             cv.SplitDefault(
                 CONF_MAX_CONNECTIONS,
@@ -315,6 +316,7 @@ CONFIG_SCHEMA = cv.All(
                 rtl87xx=5,  # Moderate RAM
                 host=8,  # Abundant resources
                 ln882x=5,  # Moderate RAM
+                sg2000=8,
             ): cv.int_range(min=1, max=20),
             # Maximum queued send buffers per connection before dropping connection
             # Each buffer uses ~8-12 bytes overhead plus actual message size
@@ -330,6 +332,7 @@ CONFIG_SCHEMA = cv.All(
                 rtl87xx=8,  # Moderate RAM
                 host=16,  # Abundant resources
                 ln882x=8,  # Moderate RAM
+                sg2000=16,
             ): cv.int_range(min=1, max=64),
         }
     ).extend(cv.COMPONENT_SCHEMA),
@@ -462,22 +465,32 @@ async def to_code(config: ConfigType) -> None:
         )
 
     if (encryption_config := config.get(CONF_ENCRYPTION, None)) is not None:
-        if key := encryption_config.get(CONF_KEY):
-            decoded = base64.b64decode(key)
-            cg.add(var.set_noise_psk(list(decoded)))
-            cg.add_define("USE_API_NOISE_PSK_FROM_YAML")
-        else:
-            # No key provided, but encryption desired
-            # This will allow a plaintext client to provide a noise key,
-            # send it to the device, and then switch to noise.
-            # The key will be saved in flash and used for future connections
-            # and plaintext disabled. Only a factory reset can remove it.
+        if CORE.is_sg2000:
+            cg.add_define("USE_API_SMHUB_NOISE_PSK")
+            if key := encryption_config.get(CONF_KEY):
+                decoded = base64.b64decode(key)
+                cg.add(var.set_noise_psk(list(decoded)))
+                cg.add_define("USE_API_NOISE_PSK_FROM_YAML")
+            else:
+                pass
             cg.add_define("USE_API_PLAINTEXT")
-        cg.add_define("USE_API_NOISE")
-        cg.add_library("esphome/noise-c", "0.1.11")
-        # Enable optimized memzero/memcmp in libsodium instead of volatile byte loops
-        cg.add_build_flag("-DHAVE_WEAK_SYMBOLS=1")
-        cg.add_build_flag("-DHAVE_INLINE_ASM=1")
+        else:
+            if key := encryption_config.get(CONF_KEY):
+                decoded = base64.b64decode(key)
+                cg.add(var.set_noise_psk(list(decoded)))
+                cg.add_define("USE_API_NOISE_PSK_FROM_YAML")
+            else:
+                # No key provided, but encryption desired
+                # This will allow a plaintext client to provide a noise key,
+                # send it to the device, and then switch to noise.
+                # The key will be saved in flash and used for future connections
+                # and plaintext disabled. Only a factory reset can remove it.
+                cg.add_define("USE_API_PLAINTEXT")
+            cg.add_define("USE_API_NOISE")
+            cg.add_library("esphome/noise-c", "0.1.11")
+            # Enable optimized memzero/memcmp in libsodium instead of volatile byte loops
+            cg.add_build_flag("-DHAVE_WEAK_SYMBOLS=1")
+            cg.add_build_flag("-DHAVE_INLINE_ASM=1")
     else:
         cg.add_define("USE_API_PLAINTEXT")
 
@@ -826,13 +839,16 @@ def FILTER_SOURCE_FILES() -> list[str]:
     # Filter protocol-specific implementations based on encryption configuration
     encryption_config = config.get(CONF_ENCRYPTION) if config else None
 
-    # If encryption is not configured at all, we only need plaintext
-    if encryption_config is None:
+    if CORE.is_sg2000:
+        # On SG2000, we always offload Noise encryption to the host,
+        # so the device always speaks plaintext via the local socket.
         files_to_filter.append("api_frame_helper_noise.cpp")
-    # If encryption is configured with a key, we only need noise
-    elif encryption_config.get(CONF_KEY):
-        files_to_filter.append("api_frame_helper_plaintext.cpp")
-    # If encryption is configured but no key is provided, we need both
-    # (this allows a plaintext client to provide a noise key)
+    else:
+        # If encryption is not configured at all, we only need plaintext
+        if encryption_config is None:
+            files_to_filter.append("api_frame_helper_noise.cpp")
+        # If encryption is configured with a key, we only need noise
+        elif encryption_config.get(CONF_KEY):
+            files_to_filter.append("api_frame_helper_plaintext.cpp")
 
     return files_to_filter

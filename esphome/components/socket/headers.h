@@ -186,7 +186,120 @@ using socklen_t = uint32_t;
 
 #endif  // USE_SOCKET_IMPL_BSD_SOCKETS
 
-#if defined(USE_SOCKET_IMPL_LWIP_TCP) || defined(USE_SOCKET_IMPL_LWIP_SOCKETS) || defined(USE_SOCKET_IMPL_BSD_SOCKETS)
+#ifdef USE_SOCKET_IMPL_RPMSG_SOCKETS
+#include <cstdint>
+#include <sys/types.h>
+
+#define AF_UNSPEC 0
+#define AF_INET 2
+#define PF_INET AF_INET
+
+#define IPPROTO_IP 0
+#define IPPROTO_TCP 6
+#define TCP_NODELAY 0x01
+
+#define SHUT_RD 0
+#define SHUT_WR 1
+#define SHUT_RDWR 2
+
+#define SOCK_STREAM 1
+#define SOCK_DGRAM 2
+#define SOCK_RAW 3
+
+#define SO_REUSEADDR 0x0004
+#define SO_KEEPALIVE 0x0008
+#define SOL_SOCKET 0xfff
+
+using sa_family_t = uint8_t;
+using in_port_t = uint16_t;
+
+struct in_addr {
+  uint32_t s_addr;
+};
+
+struct sockaddr_in {
+  uint8_t sin_len;
+  sa_family_t sin_family;
+  in_port_t sin_port;
+  struct in_addr sin_addr;
+  char sin_zero[8];
+};
+
+struct sockaddr {
+  uint8_t sa_len;
+  sa_family_t sa_family;
+  char sa_data[14];
+};
+
+struct sockaddr_storage {
+  uint8_t s2_len;
+  sa_family_t ss_family;
+  char s2_data1[2];
+  uint32_t s2_data2[3];
+  uint32_t s2_data3[3];
+};
+
+using socklen_t = uint32_t;
+
+struct iovec {
+  void *iov_base;
+  size_t iov_len;
+};
+
+using ip_addr_t = in_addr;
+using ip4_addr_t = in_addr;
+
+#include <cstdio>
+inline int ipaddr_aton(const char *cp, struct in_addr *addr) {
+    int a, b, c, d;
+    if (sscanf(cp, "%d.%d.%d.%d", &a, &b, &c, &d) == 4) {
+        addr->s_addr = a | (b << 8) | (c << 16) | (d << 24);
+        return 1;
+    }
+    return 0;
+}
+
+#define ip_addr_set_zero(ip) ((ip)->s_addr = 0)
+#define IP_ADDR4(ip, a, b, c, d) ((ip)->s_addr = (a) | ((b) << 8) | ((c) << 16) | ((d) << 24))
+#define ip_addr_copy(dest, src) ((dest).s_addr = (src).s_addr)
+#define ipaddr_ntoa_r(ip, buf, buflen) \
+    snprintf(buf, buflen, "%d.%d.%d.%d", \
+             (int)(((ip)->s_addr) & 0xFF), \
+             (int)(((ip)->s_addr >> 8) & 0xFF), \
+             (int)(((ip)->s_addr >> 16) & 0xFF), \
+             (int)(((ip)->s_addr >> 24) & 0xFF))
+#define ip_addr_cmp(ip1, ip2) ((ip1)->s_addr == (ip2)->s_addr)
+#define ip_addr_isany(ip) ((ip)->s_addr == 0)
+#define IP_IS_V4(ip) (true)
+#define IP_IS_V6(ip) (false)
+#define ip_addr_ismulticast(ip) (((ip)->s_addr & 0xF0) == 0xE0)
+
+#define ESPHOME_INADDR_ANY ((uint32_t) 0x00000000UL)
+#define ESPHOME_INADDR_NONE ((uint32_t) 0xFFFFFFFFUL)
+
+#define htons(x) ((((x) & 0xff) << 8) | (((x) & 0xff00) >> 8))
+#define htonl(x) ((((x) & 0xff) << 24) | (((x) & 0xff00) << 8) | (((x) & 0xff0000) >> 8) | (((x) & 0xff000000) >> 24))
+
+inline uint32_t inet_addr(const char *cp) {
+    struct in_addr val;
+    if (ipaddr_aton(cp, &val)) {
+        return val.s_addr;
+    }
+    return ESPHOME_INADDR_NONE;
+}
+
+inline const char *inet_ntop(int af, const void *src, char *dst, socklen_t size) {
+    if (af == AF_INET) {
+        ipaddr_ntoa_r((const struct in_addr*)src, dst, size);
+        return dst;
+    }
+    return nullptr;
+}
+
+#endif // USE_SOCKET_IMPL_RPMSG_SOCKETS
+
+
+#if defined(USE_SOCKET_IMPL_LWIP_TCP) || defined(USE_SOCKET_IMPL_LWIP_SOCKETS) || defined(USE_SOCKET_IMPL_BSD_SOCKETS) || defined(USE_SOCKET_IMPL_RPMSG_SOCKETS)
 
 namespace esphome::socket {
 

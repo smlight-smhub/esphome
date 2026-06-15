@@ -15,13 +15,17 @@
 #if USE_ARDUINO
 #include <Arduino.h>
 #include <IPAddress.h>
-#endif /* USE_ADRDUINO */
+#endif /* USE_ARDUINO */
 
 #ifdef USE_HOST
 #include <arpa/inet.h>
 using ip_addr_t = in_addr;
 using ip4_addr_t = in_addr;
 #define ipaddr_aton(x, y) inet_aton((x), (y))
+#endif
+
+#ifdef USE_SOCKET_IMPL_RPMSG_SOCKETS
+#include "esphome/components/socket/headers.h"
 #endif
 
 #if USE_ESP32_FRAMEWORK_ARDUINO
@@ -170,8 +174,8 @@ struct IPAddress {
   bool operator!=(const IPAddress &other) const { return !ip_addr_cmp(&ip_addr_, &other.ip_addr_); }
   IPAddress &operator+=(uint8_t increase) {
     if (IP_IS_V4(&ip_addr_)) {
-#if LWIP_IPV6
-      (((u8_t *) (&ip_addr_.u_addr.ip4))[3]) += increase;
+#if defined(USE_HOST) || defined(USE_SG2000)
+      (((uint8_t *) (&ip_addr_.s_addr))[3]) += increase;
 #else
       (((u8_t *) (&ip_addr_.addr))[3]) += increase;
 #endif /* LWIP_IPV6 */

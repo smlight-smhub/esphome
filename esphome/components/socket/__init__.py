@@ -15,6 +15,7 @@ CONF_IMPLEMENTATION = "implementation"
 IMPLEMENTATION_LWIP_TCP = "lwip_tcp"
 IMPLEMENTATION_LWIP_SOCKETS = "lwip_sockets"
 IMPLEMENTATION_BSD_SOCKETS = "bsd_sockets"
+IMPLEMENTATION_RPMSG_SOCKETS = "rpmsg_sockets"
 
 # Socket tracking infrastructure
 # Components register their socket needs and platforms read this to configure appropriately
@@ -149,10 +150,12 @@ CONFIG_SCHEMA = cv.Schema(
             ln882x=IMPLEMENTATION_LWIP_SOCKETS,
             rtl87xx=IMPLEMENTATION_LWIP_SOCKETS,
             host=IMPLEMENTATION_BSD_SOCKETS,
+            sg2000=IMPLEMENTATION_RPMSG_SOCKETS,
         ): cv.one_of(
             IMPLEMENTATION_LWIP_TCP,
             IMPLEMENTATION_LWIP_SOCKETS,
             IMPLEMENTATION_BSD_SOCKETS,
+            IMPLEMENTATION_RPMSG_SOCKETS,
             lower=True,
             space="_",
         ),
@@ -168,6 +171,8 @@ async def to_code(config):
         cg.add_define("USE_SOCKET_IMPL_LWIP_SOCKETS")
     elif impl == IMPLEMENTATION_BSD_SOCKETS:
         cg.add_define("USE_SOCKET_IMPL_BSD_SOCKETS")
+    elif impl == IMPLEMENTATION_RPMSG_SOCKETS:
+        cg.add_define("USE_SOCKET_IMPL_RPMSG_SOCKETS")
     # ESP32 and LibreTiny both have LwIP >= 2.1.3 with lwip_socket_dbg_get_socket()
     # and FreeRTOS task notifications — enable fast select to bypass lwip_select().
     # Only when not using lwip_tcp, which does not provide select() support.
@@ -187,4 +192,6 @@ def FILTER_SOURCE_FILES() -> list[str]:
         excluded.append("bsd_sockets_impl.cpp")
     if impl != IMPLEMENTATION_LWIP_SOCKETS:
         excluded.append("lwip_sockets_impl.cpp")
+    if impl != IMPLEMENTATION_RPMSG_SOCKETS:
+        excluded.append("rpmsg_sockets_impl.cpp")
     return excluded
