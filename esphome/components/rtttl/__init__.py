@@ -39,7 +39,7 @@ CONFIG_SCHEMA = cv.All(
 
 def validate_parent_output_config(value):
     platform = value.get(CONF_PLATFORM)
-    PWM_GOOD = ["esp8266_pwm", "ledc"]
+    PWM_GOOD = ["esp8266_pwm", "ledc", "sg2000_pwm"]
     PWM_BAD = [
         "ac_dimmer",
         "esp32_dac",
