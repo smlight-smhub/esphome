@@ -42,6 +42,7 @@ from esphome.const import (
     PLATFORM_ESP8266,
     PLATFORM_NRF52,
     PLATFORM_RP2040,
+    PLATFORM_SG2000,
     PlatformFramework,
 )
 from esphome.core import CORE, CoroPriority, coroutine_with_priority
@@ -56,6 +57,7 @@ InternalI2CBus = i2c_ns.class_("InternalI2CBus", I2CBus)
 ArduinoI2CBus = i2c_ns.class_("ArduinoI2CBus", InternalI2CBus, cg.Component)
 IDFI2CBus = i2c_ns.class_("IDFI2CBus", InternalI2CBus, cg.Component)
 ZephyrI2CBus = i2c_ns.class_("ZephyrI2CBus", I2CBus, cg.Component)
+Sg2000I2CBus = i2c_ns.class_("Sg2000I2CBus", I2CBus, cg.Component)
 I2CDevice = i2c_ns.class_("I2CDevice")
 
 ESP32_I2C_CAPABILITIES = {
@@ -90,6 +92,8 @@ def _bus_declare_type(value):
         return cv.declare_id(ArduinoI2CBus)(value)
     if CORE.using_zephyr:
         return cv.declare_id(ZephyrI2CBus)(value)
+    if CORE.is_sg2000:
+        return cv.declare_id(Sg2000I2CBus)(value)
     raise NotImplementedError
 
 
@@ -139,6 +143,7 @@ CONFIG_SCHEMA = cv.All(
                 esp8266="50kHz",
                 rp2040="50kHz",
                 nrf52="100kHz",
+                sg2000="400kHz",
             ): cv.All(
                 cv.frequency,
                 cv.float_range(min=0, min_included=False),
@@ -155,9 +160,10 @@ CONFIG_SCHEMA = cv.All(
                 ),
                 cv.boolean,
             ),
+            cv.Optional("i2c_id", default=4): cv.All(cv.only_on([PLATFORM_SG2000]), cv.int_range(min=0, max=4)),
         }
     ).extend(cv.COMPONENT_SCHEMA),
-    cv.only_on([PLATFORM_ESP32, PLATFORM_ESP8266, PLATFORM_RP2040, PLATFORM_NRF52]),
+    cv.only_on([PLATFORM_ESP32, PLATFORM_ESP8266, PLATFORM_RP2040, PLATFORM_NRF52, PLATFORM_SG2000]),
     validate_config,
 )
 
@@ -247,6 +253,9 @@ async def to_code(config):
     else:
         var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
+
+    if CORE.is_sg2000:
+        cg.add(var.set_i2c_id(config["i2c_id"]))
 
     cg.add(var.set_sda_pin(config[CONF_SDA]))
     if CONF_SDA_PULLUP_ENABLED in config:
