@@ -1,5 +1,6 @@
 #include "bluetooth_proxy.h"
 
+#include "esphome/components/api/api_server.h"
 #include "esphome/core/log.h"
 #include "esphome/core/macros.h"
 #include "esphome/core/application.h"
@@ -471,5 +472,23 @@ void BluetoothProxy::bluetooth_scanner_set_mode(bool active) {
 BluetoothProxy *global_bluetooth_proxy = nullptr;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 }  // namespace esphome::bluetooth_proxy
+
+#else  // !USE_ESP32
+
+#include "bluetooth_proxy.h"
+
+namespace esphome {
+namespace bluetooth_proxy {
+
+BluetoothProxy *global_bluetooth_proxy = nullptr;
+
+void BluetoothProxy::setup() {
+  global_bluetooth_proxy = this;
+}
+
+void BluetoothProxy::loop() {}
+
+}  // namespace bluetooth_proxy
+}  // namespace esphome
 
 #endif  // USE_ESP32

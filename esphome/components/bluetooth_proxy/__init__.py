@@ -6,12 +6,49 @@ from esphome.components.esp32 import add_idf_sdkconfig_option
 from esphome.components.esp32_ble import BTLoggers
 import esphome.config_validation as cv
 from esphome.const import CONF_ACTIVE, CONF_ID
+from esphome.core import CORE
 
-AUTO_LOAD = ["esp32_ble_client", "esp32_ble_tracker"]
-DEPENDENCIES = ["api", "esp32"]
 CODEOWNERS = ["@jesserockz", "@bdraco"]
 
 _LOGGER = logging.getLogger(__name__)
+
+class DependenciesList(list):
+    def __iter__(self):
+        try:
+            is_esp32 = CORE.is_esp32
+        except Exception:
+            is_esp32 = False
+        if is_esp32:
+            return iter(["api", "esp32"])
+        return iter(["api"])
+
+    def __len__(self):
+        try:
+            is_esp32 = CORE.is_esp32
+        except Exception:
+            is_esp32 = False
+        return 2 if is_esp32 else 1
+
+DEPENDENCIES = DependenciesList()
+
+class AutoLoadList(list):
+    def __iter__(self):
+        try:
+            is_esp32 = CORE.is_esp32
+        except Exception:
+            is_esp32 = False
+        if is_esp32:
+            return iter(["esp32_ble_client", "esp32_ble_tracker"])
+        return iter([])
+
+    def __len__(self):
+        try:
+            is_esp32 = CORE.is_esp32
+        except Exception:
+            is_esp32 = False
+        return 2 if is_esp32 else 0
+
+AUTO_LOAD = AutoLoadList()
 
 CONF_CONNECTION_SLOTS = "connection_slots"
 CONF_CACHE_SERVICES = "cache_services"
@@ -35,6 +72,8 @@ CONNECTION_SCHEMA = esp32_ble_tracker.ESP_BLE_DEVICE_SCHEMA.extend(
 
 
 def validate_connections(config):
+    if not CORE.is_esp32:
+        return config
     if CONF_CONNECTIONS in config:
         if not config[CONF_ACTIVE]:
             raise cv.Invalid(
@@ -51,7 +90,7 @@ def validate_connections(config):
     return config
 
 
-CONFIG_SCHEMA = cv.All(
+_ESP32_CONFIG_SCHEMA = cv.All(
     (
         cv.Schema(
             {
@@ -78,7 +117,27 @@ CONFIG_SCHEMA = cv.All(
 )
 
 
+def CONFIG_SCHEMA(value):
+    if not CORE.is_esp32:
+        schema = cv.Schema(
+            {
+                cv.GenerateID(): cv.declare_id(BluetoothProxy),
+                cv.Optional(CONF_ACTIVE, default=True): cv.boolean,
+            }
+        ).extend(cv.COMPONENT_SCHEMA)
+        return schema(value)
+    return _ESP32_CONFIG_SCHEMA(value)
+
+
 async def to_code(config):
+    if not CORE.is_esp32:
+        var = cg.new_Pvariable(config[CONF_ID])
+        await cg.register_component(var, config)
+        cg.add_define("USE_BLUETOOTH_PROXY")
+        cg.add_define("BLUETOOTH_PROXY_ADVERTISEMENT_BATCH_SIZE", 16)
+        cg.add_define("BLUETOOTH_PROXY_MAX_CONNECTIONS", 0)
+        return
+
     # Register the loggers this component needs
     esp32_ble.register_bt_logger(BTLoggers.GATT, BTLoggers.L2CAP, BTLoggers.SMP)
 

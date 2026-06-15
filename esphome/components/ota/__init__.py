@@ -1,5 +1,3 @@
-import logging
-
 from esphome import automation
 import esphome.codegen as cg
 from esphome.config_helpers import filter_source_files_from_platform
@@ -22,7 +20,7 @@ CODEOWNERS = ["@esphome/core"]
 
 def AUTO_LOAD() -> list[str]:
     components = ["safe_mode"]
-    if not CORE.using_zephyr:
+    if not CORE.using_zephyr and CORE.target_platform != "sg2000":
         components.extend(["md5"])
     if CORE.is_esp32:
         components.extend(["watchdog"])
@@ -37,8 +35,6 @@ CONF_ON_END = "on_end"
 CONF_ON_PROGRESS = "on_progress"
 CONF_ON_STATE_CHANGE = "on_state_change"
 
-
-_LOGGER = logging.getLogger(__name__)
 
 ota_ns = cg.esphome_ns.namespace("ota")
 OTAComponent = ota_ns.class_("OTAComponent", cg.Component)
@@ -57,10 +53,6 @@ def _ota_final_validate(config):
     if len(config) < 1:
         raise cv.Invalid(
             f"At least one platform must be specified for '{CONF_OTA}'; add '{CONF_PLATFORM}: {CONF_ESPHOME}' for original OTA functionality"
-        )
-    if CORE.is_host:
-        _LOGGER.warning(
-            "OTA not available for platform 'host'. OTA functionality disabled."
         )
 
 
@@ -104,7 +96,8 @@ BASE_OTA_SCHEMA = cv.Schema(
 
 @coroutine_with_priority(CoroPriority.OTA_UPDATES)
 async def to_code(config):
-    cg.add_define("USE_OTA")
+    if CORE.target_platform != "sg2000":
+        cg.add_define("USE_OTA")
     CORE.add_job(final_step)
 
     if CORE.is_rp2040 and CORE.using_arduino:
@@ -172,5 +165,6 @@ FILTER_SOURCE_FILES = filter_source_files_from_platform(
             PlatformFramework.RTL87XX_ARDUINO,
             PlatformFramework.LN882X_ARDUINO,
         },
+        "ota_backend_host.cpp": {PlatformFramework.HOST_NATIVE},
     }
 )
