@@ -50,6 +50,8 @@ def get_ini_content():
 
     content = "[platformio]\n"
     content += f"description = ESPHome {__version__}\n"
+    content += f"default_envs = {CORE.name}\n"
+    content += "extra_configs = platformio_override.ini\n"
 
     content += f"[env:{CORE.name}]\n"
     content += format_ini(CORE.platformio_options)

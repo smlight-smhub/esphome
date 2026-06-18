@@ -89,11 +89,11 @@ async def to_code(config):
     cg.add_define(ThreadModel.MULTI_ATOMICS)
     
     cg.add_platformio_option(
-        "platform", "symlink:///usr/local/src/smlight/smhub/antigravity-nodered/platform-sg2000"
+        "platform", "https://github.com/smlight-smhub/platform-sg2000.git"
     )
     cg.add_platformio_option(
         "platform_packages",
-        "framework-sg2000-rtos @ symlink:///usr/local/src/smlight/smhub/antigravity-nodered/framework-sg2000-rtos",
+        "framework-sg2000-rtos @ git+https://github.com/smlight-smhub/framework-sg2000-rtos.git",
     )
     cg.add_platformio_option("framework", "freertos")
     cg.add_platformio_option("board", "smhub")
