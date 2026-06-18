@@ -43,13 +43,19 @@ AUTO_LOAD = ["network", "socket"]
 IS_TARGET_PLATFORM = True
 
 CONF_VERSION = "version"
+CONF_USE_ADDRESS = "use_address"
 
 def set_core_data(config):
     CORE.data[KEY_SG2000] = {}
     CORE.data[KEY_CORE][KEY_TARGET_PLATFORM] = PLATFORM_SG2000
     CORE.data[KEY_CORE][KEY_TARGET_FRAMEWORK] = "freertos"
     CORE.data[KEY_CORE][KEY_FRAMEWORK_VERSION] = cv.Version(1, 0, 0)
-    CORE.address = "127.0.0.1"
+    
+    if CONF_USE_ADDRESS in config:
+        CORE.address = config[CONF_USE_ADDRESS]
+    else:
+        CORE.address = f"{CORE.name}.local"
+        
     if "esphome" in CORE.raw_config:
         CORE.raw_config["esphome"].setdefault("name_add_mac_suffix", True)
     return config
@@ -59,6 +65,7 @@ CONFIG_SCHEMA = cv.All(
         {
             cv.Optional(CONF_BOARD, default="c906"): cv.string,
             cv.Optional(CONF_VERSION): cv.string,
+            cv.Optional(CONF_USE_ADDRESS): cv.string,
         }
     ),
     set_core_data,
