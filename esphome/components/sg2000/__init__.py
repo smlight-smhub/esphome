@@ -49,6 +49,7 @@ def set_core_data(config):
     CORE.data[KEY_CORE][KEY_TARGET_PLATFORM] = PLATFORM_SG2000
     CORE.data[KEY_CORE][KEY_TARGET_FRAMEWORK] = "freertos"
     CORE.data[KEY_CORE][KEY_FRAMEWORK_VERSION] = cv.Version(1, 0, 0)
+    CORE.address = "127.0.0.1"
     if "esphome" in CORE.raw_config:
         CORE.raw_config["esphome"].setdefault("name_add_mac_suffix", True)
     return config
