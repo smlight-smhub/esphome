@@ -97,3 +97,14 @@ async def to_code(config):
     )
     cg.add_platformio_option("framework", "freertos")
     cg.add_platformio_option("board", "smhub")
+
+
+def get_download_types(storage_json):
+    return [
+        {
+            "title": "RTOS ELF format",
+            "description": "For copying to the SMHUB over SSH/SCP.",
+            "file": "program.elf",
+            "download": f"{storage_json.name}.elf",
+        },
+    ]
