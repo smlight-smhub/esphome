@@ -675,6 +675,9 @@ class EsphomeCore:
             if network_type in self.config:
                 return self.config[network_type][CONF_USE_ADDRESS]
 
+        if "sg2000" in self.config:
+            return self.config["sg2000"].get(CONF_USE_ADDRESS, f"{self.name}.local")
+
         if CONF_OPENTHREAD in self.config:
             return f"{self.name}.local"
 
