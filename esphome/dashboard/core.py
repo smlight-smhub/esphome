@@ -109,67 +109,6 @@ class ESPHomeDashboard:
         self.entries = DashboardEntries(self)
         await self.loop.run_in_executor(None, self.load_ignored_devices)
 
-        # Check if the config directory contains any yaml/yml files. If not, auto-create default templates.
-        from pathlib import Path
-        config_dir = Path(self.settings.config_dir)
-        yaml_files = list(config_dir.glob("*.yaml")) + list(config_dir.glob("*.yml"))
-        if not yaml_files:
-            import secrets
-            import base64
-            noise_psk = secrets.token_bytes(32)
-            api_encryption_key = base64.b64encode(noise_psk).decode()
-            try:
-                def find_template(filename: str) -> Path | None:
-                    # Check /opt/ first
-                    opt_path = Path("/opt") / filename
-                    if opt_path.exists():
-                        return opt_path
-                    # Search upwards from current file to find the workspace directory containing the files
-                    current = Path(__file__).resolve()
-                    for parent in [current] + list(current.parents):
-                        candidate = parent / filename
-                        if candidate.exists():
-                            return candidate
-                        for sub in ["", "esphome-smhub", "smhub-addons/esphome-smhub"]:
-                            candidate = parent / sub / filename
-                            if candidate.exists():
-                                return candidate
-                    return None
-
-                copied_any = False
-
-                # Copy smhub-esphome.yaml
-                smhub_tpl = find_template("smhub-esphome.yaml")
-                if smhub_tpl:
-                    smhub_content = smhub_tpl.read_text(encoding="utf-8")
-                    (config_dir / "smhub-esphome.yaml").write_text(smhub_content, encoding="utf-8")
-                    _LOGGER.info("Created default smhub-esphome.yaml from: %s", smhub_tpl)
-                    copied_any = True
-
-                # Copy nano-esphome.yaml
-                nano_tpl = find_template("nano-esphome.yaml")
-                if nano_tpl:
-                    nano_content = nano_tpl.read_text(encoding="utf-8")
-                    (config_dir / "nano-esphome.yaml").write_text(nano_content, encoding="utf-8")
-                    _LOGGER.info("Created default nano-esphome.yaml from: %s", nano_tpl)
-                    copied_any = True
-
-                if copied_any:
-                    # Also copy common-core.yaml and patch the encryption key
-                    common_tpl = find_template("common-core.yaml")
-                    if common_tpl:
-                        common_content = common_tpl.read_text(encoding="utf-8")
-                        common_content = common_content.replace(
-                            "VGVzdGluZ1RSTkdFbmNyeXB0aW9uS2V5MTIzNDU2Nzg=", api_encryption_key
-                        )
-                        dest_common = config_dir / "common-core.yaml"
-                        dest_common.write_text(common_content, encoding="utf-8")
-                        _LOGGER.info("Created default common-core.yaml from: %s", common_tpl)
-                else:
-                    _LOGGER.error("No default configuration templates found in search paths")
-            except Exception as e:
-                _LOGGER.error("Failed to write default configuration templates: %s", e)
-
     def load_ignored_devices(self) -> None:
         storage_path = ignored_devices_storage_path()
         try:
