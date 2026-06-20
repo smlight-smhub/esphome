@@ -39,6 +39,11 @@ mkdir -p "${pio_cache_base}"
 
 mkdir -p /config/esphome
 
+if [ -f /opt/.common-core.yaml ]; then
+    bashio::log.info "Synchronizing .common-core.yaml..."
+    cp -f /opt/.common-core.yaml /config/esphome/.common-core.yaml
+fi
+
 if bashio::fs.directory_exists '/config/esphome/.esphome'; then
     bashio::log.info "Migrating old .esphome directory..."
     if bashio::fs.file_exists '/config/esphome/.esphome/esphome.json'; then
