@@ -155,16 +155,16 @@ class ESPHomeDashboard:
                     copied_any = True
 
                 if copied_any:
-                    # Also copy common-core.yaml and patch the encryption key
-                    common_tpl = find_template("common-core.yaml")
+                    # Also copy .common-core.yaml and patch the encryption key
+                    common_tpl = find_template(".common-core.yaml")
                     if common_tpl:
                         common_content = common_tpl.read_text(encoding="utf-8")
                         common_content = common_content.replace(
                             "VGVzdGluZ1RSTkdFbmNyeXB0aW9uS2V5MTIzNDU2Nzg=", api_encryption_key
                         )
-                        dest_common = config_dir / "common-core.yaml"
+                        dest_common = config_dir / ".common-core.yaml"
                         dest_common.write_text(common_content, encoding="utf-8")
-                        _LOGGER.info("Created default common-core.yaml from: %s", common_tpl)
+                        _LOGGER.info("Created default .common-core.yaml from: %s", common_tpl)
                 else:
                     _LOGGER.error("No default configuration templates found in search paths")
             except Exception as e:
