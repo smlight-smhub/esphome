@@ -19,7 +19,7 @@ namespace esphome::socket {
 class RPMSGSocketImpl {
  public:
   RPMSGSocketImpl(int fd = 0);
-  ~RPMSGSocketImpl() = default;
+  ~RPMSGSocketImpl();
   RPMSGSocketImpl(const RPMSGSocketImpl &) = delete;
   RPMSGSocketImpl &operator=(const RPMSGSocketImpl &) = delete;
 

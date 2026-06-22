@@ -746,6 +746,11 @@ void APIServer::send_action_response(uint32_t action_call_id, bool success, Stri
 
 extern "C" {
   bool smhub_ipc_send_rpc(const smhub_hal_rpc_RpcCommand *cmd);
+  void esphome_rpmsg_sync_config() {
+    if (global_api_server != nullptr) {
+      global_api_server->sync_broker_config();
+    }
+  }
 }
 
 void APIServer::set_noise_psk(std::vector<uint8_t> psk) {
