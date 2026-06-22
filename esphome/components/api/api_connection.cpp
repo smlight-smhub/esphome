@@ -284,6 +284,7 @@ void APIConnection::loop() {
     this->process_active_iterator_();
   }
 
+#ifndef USE_SOCKET_IMPL_RPMSG_SOCKETS
   // Disconnect clients that haven't completed the handshake in time.
   // Stale half-open connections from buggy clients or network issues can
   // accumulate and block legitimate clients from reconnecting.
@@ -299,6 +300,7 @@ void APIConnection::loop() {
   if (now - this->last_traffic_ > KEEPALIVE_TIMEOUT_MS) {
     this->check_keepalive_(now);
   }
+#endif
 
 #ifdef USE_API_HOMEASSISTANT_STATES
   if (state_subs_at_ >= 0) {
