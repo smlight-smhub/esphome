@@ -70,6 +70,17 @@ RPMSGSocketImpl::~RPMSGSocketImpl() {
     }
 }
 
+int RPMSGSocketImpl::close() {
+    if (fd_ == 1) {
+        esphome_rpmsg_reset();
+        if (server_socket != nullptr) {
+            server_socket->fd_ = 0;
+        }
+    }
+    fd_ = -1;
+    return 0;
+}
+
 std::unique_ptr<RPMSGSocketImpl> RPMSGSocketImpl::accept(struct sockaddr *addr, socklen_t *addrlen) {
     if (fd_ == 0 && connection_established) {
         // Return the client socket. We change our fd so we don't accept again until closed.

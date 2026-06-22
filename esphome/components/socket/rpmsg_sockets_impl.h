@@ -31,7 +31,7 @@ class RPMSGSocketImpl {
   }
 
   int bind(const struct sockaddr *addr, socklen_t addrlen) { return 0; }
-  int close() { fd_ = -1; return 0; }
+  int close();
   int shutdown(int how) { return 0; }
 
   int getpeername(struct sockaddr *addr, socklen_t *addrlen) { return 0; }
