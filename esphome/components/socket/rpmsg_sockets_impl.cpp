@@ -16,6 +16,7 @@ extern "C" uint8_t connection_established = 0;
 namespace esphome::socket {
 
 static const char *const TAG = "socket.rpmsg";
+static RPMSGSocketImpl *server_socket = nullptr;
 
 // A simple static ring buffer for incoming data from Linux over RPMSG
 static constexpr size_t RX_BUFFER_SIZE = 8192;
@@ -26,13 +27,8 @@ static size_t rx_tail = 0;
 
 
 extern "C" void esphome_rpmsg_rx_cb(const uint8_t *data, size_t len) {
-    // If the buffer is empty, we consider the connection established upon first packet
     if (!connection_established && len > 0) {
         connection_established = true;
-        // Drop the 1-byte dummy packet sent by Linux RpmsgTransport::try_open
-        if (len == 1 && data[0] == 0x00) {
-            return;
-        }
     }
 
     for (size_t i = 0; i < len; i++) {
@@ -46,7 +42,32 @@ extern "C" void esphome_rpmsg_rx_cb(const uint8_t *data, size_t len) {
     }
 }
 
+extern "C" void esphome_rpmsg_sync_config(void) __attribute__((weak));
+
+extern "C" void esphome_rpmsg_reset() {
+    connection_established = 0;
+    rx_head = 0;
+    rx_tail = 0;
+    if (esphome_rpmsg_sync_config) {
+        esphome_rpmsg_sync_config();
+    }
+}
+
 RPMSGSocketImpl::RPMSGSocketImpl(int fd) : fd_(fd) {
+    if (fd_ == 0) {
+        server_socket = this;
+    }
+}
+
+RPMSGSocketImpl::~RPMSGSocketImpl() {
+    if (fd_ == 0 && server_socket == this) {
+        server_socket = nullptr;
+    } else if (fd_ == 1) {
+        esphome_rpmsg_reset();
+        if (server_socket != nullptr) {
+            server_socket->fd_ = 0;
+        }
+    }
 }
 
 std::unique_ptr<RPMSGSocketImpl> RPMSGSocketImpl::accept(struct sockaddr *addr, socklen_t *addrlen) {
@@ -63,6 +84,9 @@ bool RPMSGSocketImpl::ready() const {
 }
 
 ssize_t RPMSGSocketImpl::read(void *buf, size_t len) {
+    if (fd_ == 1 && !connection_established) {
+        return 0;
+    }
     uint8_t *dest = static_cast<uint8_t *>(buf);
     size_t bytes_read = 0;
     while (bytes_read < len && rx_head != rx_tail) {
