@@ -70,8 +70,22 @@ class RPMSGSocketImpl {
 
   int get_fd() const { return fd_; }
 
+  uint32_t get_conn_id() const { return conn_id_; }
+  void set_conn_id(uint32_t conn_id) { conn_id_ = conn_id; }
+  void push_rx_data(const uint8_t *data, size_t len);
+  void mark_closed() { is_closed_ = true; }
+  bool is_closed() const { return is_closed_; }
+
  protected:
   int fd_{-1};
+  uint32_t conn_id_{0};
+  bool is_server_{false};
+  bool is_closed_{false};
+
+  static constexpr size_t RX_BUFFER_SIZE = 8192;
+  uint8_t rx_buffer_[RX_BUFFER_SIZE];
+  size_t rx_head_{0};
+  size_t rx_tail_{0};
 };
 
 }  // namespace esphome::socket
