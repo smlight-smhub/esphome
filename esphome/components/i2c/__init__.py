@@ -177,6 +177,7 @@ CONFIG_SCHEMA = cv.All(
                 esp8266="SDA",
                 rp2="SDA",
                 nrf52="SDA",
+                sg2000="SDA",
             ): pins.internal_gpio_pin_number,
             cv.SplitDefault(CONF_SDA_PULLUP_ENABLED, esp32=True): cv.All(
                 cv.only_on_esp32, cv.boolean
@@ -187,6 +188,7 @@ CONFIG_SCHEMA = cv.All(
                 esp8266="SCL",
                 rp2="SCL",
                 nrf52="SCL",
+                sg2000="SCL",
             ): pins.internal_gpio_pin_number,
             cv.SplitDefault(CONF_SCL_PULLUP_ENABLED, esp32=True): cv.All(
                 cv.only_on_esp32, cv.boolean
