@@ -91,10 +91,6 @@ async def to_code(config):
     cg.add_platformio_option(
         "platform", "https://github.com/smlight-smhub/platform-sg2000.git"
     )
-    cg.add_platformio_option(
-        "platform_packages",
-        "framework-sg2000-rtos @ git+https://github.com/smlight-smhub/framework-sg2000-rtos.git",
-    )
     cg.add_platformio_option("framework", "freertos")
     cg.add_platformio_option("board", "smhub")
 
