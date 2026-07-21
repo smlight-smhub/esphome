@@ -122,10 +122,6 @@ class DashboardImportDiscovery:
                 self.on_update(name, None)
             return
 
-        if state_change == ServiceStateChange.Updated and name not in self.import_state:
-            # Ignore updates for devices that are not in the import state
-            return
-
         info = AsyncServiceInfo(
             service_type,
             name,
