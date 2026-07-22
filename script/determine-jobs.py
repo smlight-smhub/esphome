@@ -151,6 +151,18 @@ def _compute_integration_test_buckets(
 class Platform(StrEnum):
     """Platform identifiers for memory impact analysis."""
 
+    ESP8266_ARD = "esp8266-ard"
+    ESP32_IDF = "esp32-idf"
+    ESP32_C3_IDF = "esp32-c3-idf"
+    ESP32_C6_IDF = "esp32-c6-idf"
+    ESP32_S2_IDF = "esp32-s2-idf"
+    ESP32_S3_IDF = "esp32-s3-idf"
+    BK72XX_ARD = "bk72xx-ard"  # LibreTiny BK7231N
+    RTL87XX_ARD = "rtl87xx-ard"  # LibreTiny RTL8720x
+    LN882X_ARD = "ln882x-ard"  # LibreTiny LN882x
+    RP2040_ARD = "rp2040-ard"  # RP2 family, RP2040 chip (Pico / Pico W)
+    RP2350_ARD = "rp2350-ard"  # RP2 family, RP2350 chip (Pico 2 / Pico 2 W)
+    NRF52_ZEPHYR = "nrf52-adafruit"  # Nordic nRF52 (Zephyr)
     SG2000 = "sg2000"
 
 
@@ -559,7 +571,21 @@ def esp32_platformio_components_to_test(branch: str | None = None) -> list[str]:
 
 
 def should_run_esp32_platformio(branch: str | None = None) -> bool:
-    return False
+    """Determine if the `test-esp32-platformio` compile-test job should run.
+
+    Runs whenever ``esp32_platformio_components_to_test()`` returns a non-empty
+    list. Skipping the job on unrelated Python-only PRs avoids ~5 min of
+    CI per PR (worse on cold caches). The regular ``component-test``
+    matrix still exercises the same components through the default
+    toolchain when those components change.
+
+    Args:
+        branch: Branch to compare against. If None, uses default.
+
+    Returns:
+        True if the PlatformIO compile test should run, False otherwise.
+    """
+    return bool(esp32_platformio_components_to_test(branch))
 
 
 def determine_cpp_unit_tests(
