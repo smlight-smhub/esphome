@@ -17,7 +17,7 @@ class DependenciesList(list):
     def __iter__(self):
         try:
             is_esp32 = CORE.is_esp32
-        except Exception:
+        except AttributeError:
             is_esp32 = False
         if is_esp32:
             return iter(["api", "esp32"])
@@ -26,7 +26,7 @@ class DependenciesList(list):
     def __len__(self):
         try:
             is_esp32 = CORE.is_esp32
-        except Exception:
+        except AttributeError:
             is_esp32 = False
         return 2 if is_esp32 else 1
 
@@ -38,7 +38,7 @@ class AutoLoadList(list):
     def __iter__(self):
         try:
             is_esp32 = CORE.is_esp32
-        except Exception:
+        except AttributeError:
             is_esp32 = False
         if is_esp32:
             return iter(["esp32_ble_client", "esp32_ble_tracker"])
@@ -47,7 +47,7 @@ class AutoLoadList(list):
     def __len__(self):
         try:
             is_esp32 = CORE.is_esp32
-        except Exception:
+        except AttributeError:
             is_esp32 = False
         return 2 if is_esp32 else 0
 
