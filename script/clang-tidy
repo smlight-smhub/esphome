@@ -54,7 +54,10 @@ def clang_options(idedata):
         # compile for the actual triplet. Espressif's RISC-V GCC -march adds
         # vendor extensions (xesploop, xespv) upstream clang doesn't know; those
         # are stripped from the copied cxx_flags below.
-        cmd.append(f"--target={triplet}")
+        if triplet.startswith("riscv-"):
+            cmd.append("--target=riscv64-unknown-elf")
+        else:
+            cmd.append(f"--target={triplet}")
         # The GCC build passes flags (e.g. -fno-plt) that clang accepts for some
         # targets but not others; don't error on the ones unused for this target.
         cmd.append("-Qunused-arguments")
@@ -139,6 +142,12 @@ def clang_options(idedata):
         and not flag.startswith("-Werror")
         and not flag.startswith("-std=")
         and not flag.startswith("-mtune=esp")
+        and not flag.startswith("-mcpu=")
+        and not flag.startswith("-march=")
+        and not flag.startswith("-mabi=")
+        and not flag.startswith("-mcmodel=")
+        and not flag.startswith("-mno-fence-tso")
+        and flag != "-G"
     )
     cmd.append("-std=gnu++20")
 
