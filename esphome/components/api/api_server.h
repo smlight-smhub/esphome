@@ -79,9 +79,11 @@ class APIServer final : public Component,
   APINoiseContext &get_noise_ctx() { return this->noise_ctx_; }
 #endif  // USE_API_NOISE
 
+#ifdef USE_SG2000
   void set_noise_psk(std::vector<uint8_t> psk);
   std::vector<uint8_t> smhub_psk_;
   void sync_broker_config();
+#endif
 
   void handle_disconnect(APIConnection *conn);
 #ifdef USE_BINARY_SENSOR

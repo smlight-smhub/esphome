@@ -8,8 +8,10 @@
 #include "esphome/core/controller_registry.h"
 #include "esphome/core/defines.h"
 
+#ifdef USE_SG2000
 #include "gen/rpc.pb.h"
 #include <pb_encode.h>
+#endif
 
 #include "esphome/core/hal.h"
 #include "esphome/core/log.h"
@@ -138,7 +140,9 @@ void APIServer::setup() {
     this->status_set_warning(LOG_STR("waiting for client connection"));
   }
 
+#ifdef USE_SG2000
   this->sync_broker_config();
+#endif
 }
 
 void APIServer::loop() {
@@ -799,6 +803,7 @@ void APIServer::send_action_response(uint32_t action_call_id, bool success, Stri
 #endif  // USE_API_USER_DEFINED_ACTION_RESPONSES_JSON
 #endif  // USE_API_USER_DEFINED_ACTION_RESPONSES
 
+#ifdef USE_SG2000
 extern "C" {
 bool smhub_ipc_send_rpc(const smhub_hal_rpc_RpcCommand *cmd);
 void esphome_rpmsg_sync_config() {
@@ -833,6 +838,7 @@ void APIServer::sync_broker_config() {
              this->port_);
   }
 }
+#endif
 
 }  // namespace esphome::api
 #endif
