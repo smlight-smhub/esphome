@@ -96,7 +96,8 @@ struct CStrCompare {
 // macOS allows up to 64 bytes, Linux up to 16
 static constexpr size_t THREAD_NAME_BUF_SIZE = 64;
 
-#if defined(USE_ESP32) || defined(USE_ESP8266) || defined(USE_RP2) || defined(USE_LIBRETINY) || defined(USE_ZEPHYR) || defined(USE_SG2000)
+#if defined(USE_ESP32) || defined(USE_ESP8266) || defined(USE_RP2) || defined(USE_LIBRETINY) || defined(USE_ZEPHYR) || \
+    defined(USE_SG2000)
 /** Enum for logging UART selection
  *
  * Advanced configuration (pin selection, etc) is not supported.
@@ -160,7 +161,8 @@ class Logger final : public Component {
 #ifdef USE_HOST
   void create_pthread_key() { pthread_key_create(&log_recursion_key_, nullptr); }
 #endif
-#if defined(USE_ESP32) || defined(USE_ESP8266) || defined(USE_RP2) || defined(USE_LIBRETINY) || defined(USE_ZEPHYR) || defined(USE_SG2000)
+#if defined(USE_ESP32) || defined(USE_ESP8266) || defined(USE_RP2) || defined(USE_LIBRETINY) || defined(USE_ZEPHYR) || \
+    defined(USE_SG2000)
   void set_uart_selection(UARTSelection uart_selection) { uart_ = uart_selection; }
   /// Get the UART used by the logger.
   UARTSelection get_uart() const;

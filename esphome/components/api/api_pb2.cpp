@@ -1,9 +1,9 @@
 // This file was automatically generated with a tool.
 // See script/api_protobuf/api_protobuf.py
-#include "api_pb2.h"
-#include "esphome/core/log.h"
-#include "esphome/core/helpers.h"
-#include <cstring>
+    #include "api_pb2.h"
+    #include "esphome/core/log.h"
+    #include "esphome/core/helpers.h"
+    #include <cstring>
 
 namespace esphome::api {
 
@@ -45,11 +45,8 @@ uint32_t HelloResponse::calculate_size() const {
 }
 bool DisconnectRequest::decode_varint(uint32_t field_id, proto_varint_value_t value) {
   switch (field_id) {
-    case 1:
-      this->reason = static_cast<enums::DisconnectReason>(value);
-      break;
-    default:
-      return false;
+    case 1: this->reason = static_cast<enums::DisconnectReason>(value); break;
+    default: return false;
   }
   return true;
 }

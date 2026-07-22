@@ -1,8 +1,8 @@
 # Copyright 2026 SMLIGHT
 
 import esphome.codegen as cg
-import esphome.config_validation as cv
 from esphome.components import time as time_
+import esphome.config_validation as cv
 from esphome.const import CONF_ID
 
 CODEOWNERS = ["@esphome"]
@@ -16,6 +16,7 @@ CONFIG_SCHEMA = time_.TIME_SCHEMA.extend(
         cv.GenerateID(): cv.declare_id(SmhubTime),
     }
 ).extend(cv.polling_component_schema("15min"))
+
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])

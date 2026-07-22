@@ -28,7 +28,7 @@ static const char *const TAG = "i2c.sg2000";
 class Sg2000I2CBus : public i2c::I2CBus, public Component {
  protected:
   uint8_t i2c_id_;
-  uint32_t frequency_{400000}; // Default 400kHz
+  uint32_t frequency_{400000};  // Default 400kHz
   std::string sda_pin_name_{""};
   std::string scl_pin_name_{""};
   bool initialized_{false};
@@ -37,7 +37,7 @@ class Sg2000I2CBus : public i2c::I2CBus, public Component {
   uint32_t scl_reg_{0}, scl_func_{0};
 
  public:
-  Sg2000I2CBus() : i2c_id_(4) {} // Default to I2C4
+  Sg2000I2CBus() : i2c_id_(4) {}  // Default to I2C4
 
   void set_i2c_id(uint8_t i2c_id) { i2c_id_ = i2c_id; }
   void set_sda_pin(const std::string &pin) { sda_pin_name_ = pin; }
@@ -86,14 +86,17 @@ class Sg2000I2CBus : public i2c::I2CBus, public Component {
     }
 
     if (sda_reg_ == 0 || scl_reg_ == 0) {
-      ESP_LOGE(TAG, "Invalid Pin Mux configuration for I2C%u! SDA=%s, SCL=%s", i2c_id_, sda_pin_name_.c_str(), scl_pin_name_.c_str());
+      ESP_LOGE(TAG, "Invalid Pin Mux configuration for I2C%u! SDA=%s, SCL=%s", i2c_id_, sda_pin_name_.c_str(),
+               scl_pin_name_.c_str());
       this->mark_failed();
       return;
     }
 
     uint32_t hw_bit = 0;
-    if (i2c_id_ == 2) hw_bit = sg2000::SMHUB_HW_I2C2;
-    else if (i2c_id_ == 4) hw_bit = sg2000::SMHUB_HW_I2C4;
+    if (i2c_id_ == 2)
+      hw_bit = sg2000::SMHUB_HW_I2C2;
+    else if (i2c_id_ == 4)
+      hw_bit = sg2000::SMHUB_HW_I2C4;
 
     if (hw_bit != 0 && !sg2000::smhub_hardware_is_released(hw_bit)) {
       ESP_LOGE(TAG, "Hardware Arbitration FAILED! I2C%u is not authorized by Linux/U-Boot!", i2c_id_);
@@ -102,10 +105,10 @@ class Sg2000I2CBus : public i2c::I2CBus, public Component {
     }
 
     sg2000::pinmux_config(sda_reg_, sda_func_);
-    sg2000::pad_config(sda_reg_, true, false, 3); // Pull-up for SDA
+    sg2000::pad_config(sda_reg_, true, false, 3);  // Pull-up for SDA
 
     sg2000::pinmux_config(scl_reg_, scl_func_);
-    sg2000::pad_config(scl_reg_, true, false, 3); // Pull-up for SCL
+    sg2000::pad_config(scl_reg_, true, false, 3);  // Pull-up for SCL
 
     i2c_init(i2c_id_);
     i2c_set_frequency(i2c_id_, frequency_);
@@ -118,14 +121,15 @@ class Sg2000I2CBus : public i2c::I2CBus, public Component {
     }
   }
 
-  i2c::ErrorCode write_readv(uint8_t address, const uint8_t *write_buffer, size_t write_count,
-                             uint8_t *read_buffer, size_t read_count) override {
-    if (!initialized_) return i2c::ERROR_NOT_INITIALIZED;
+  i2c::ErrorCode write_readv(uint8_t address, const uint8_t *write_buffer, size_t write_count, uint8_t *read_buffer,
+                             size_t read_count) override {
+    if (!initialized_)
+      return i2c::ERROR_NOT_INITIALIZED;
 
     if (write_count == 0 && read_count == 0) {
       if (this->is_scanning_) {
         // Designware I2C cannot do 0-byte writes.
-        // For the scanner, we do a 1-byte read. Some sensors will NACK this, 
+        // For the scanner, we do a 1-byte read. Some sensors will NACK this,
         // but it is the safest way to scan without crashing sensors like the SHT4x
         // (which crashes if you send a 1-byte write of 0x00).
         static uint8_t dummy = 0;
@@ -135,13 +139,14 @@ class Sg2000I2CBus : public i2c::I2CBus, public Component {
         msg.len = 1;
         msg.buf = &dummy;
         int ret = i2c_xfer(i2c_id_, &msg, 1);
-        if (ret != 0) return i2c::ERROR_NOT_ACKNOWLEDGED;
+        if (ret != 0)
+          return i2c::ERROR_NOT_ACKNOWLEDGED;
         return i2c::ERROR_OK;
       } else {
         // This is a 0-byte ping from a component's setup() function.
-        // Since we can't do 0-byte writes on DW I2C, and 1-byte reads/writes 
+        // Since we can't do 0-byte writes on DW I2C, and 1-byte reads/writes
         // cause false NACKs or sensor crashes, we just blindly return OK.
-        // The component will immediately follow up with a real transaction 
+        // The component will immediately follow up with a real transaction
         // (e.g. read_serial_number) which will naturally fail if the sensor is missing.
         return i2c::ERROR_OK;
       }
@@ -152,9 +157,9 @@ class Sg2000I2CBus : public i2c::I2CBus, public Component {
 
     if (write_count > 0) {
       msgs[msg_count].addr = address;
-      msgs[msg_count].flags = 0; // write
+      msgs[msg_count].flags = 0;  // write
       msgs[msg_count].len = write_count;
-      msgs[msg_count].buf = (uint8_t *)write_buffer;
+      msgs[msg_count].buf = (uint8_t *) write_buffer;
       msg_count++;
     }
 
@@ -178,5 +183,5 @@ class Sg2000I2CBus : public i2c::I2CBus, public Component {
   }
 };
 
-} // namespace i2c
-} // namespace esphome
+}  // namespace i2c
+}  // namespace esphome

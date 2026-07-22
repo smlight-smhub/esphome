@@ -1,7 +1,7 @@
 import esphome.codegen as cg
-import esphome.config_validation as cv
 from esphome.components import output
-from esphome.const import CONF_ID, CONF_CHANNEL, CONF_FREQUENCY
+import esphome.config_validation as cv
+from esphome.const import CONF_CHANNEL, CONF_FREQUENCY, CONF_ID
 
 sg2000_pwm_ns = cg.esphome_ns.namespace("sg2000_pwm")
 Sg2000PWM = sg2000_pwm_ns.class_("Sg2000PWM", output.FloatOutput, cg.Component)
@@ -20,6 +20,7 @@ CONFIG_SCHEMA = output.FLOAT_OUTPUT_SCHEMA.extend(
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
+
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
@@ -33,4 +34,9 @@ async def to_code(config):
     pwm_id = config[CONF_PWM_ID]
     channel = config[CONF_CHANNEL]
     abs_channel = pwm_id * 4 + channel
-    cg.add(var.set_pin_mux(cg.RawExpression(f"FMUX_GPIO_FUNCSEL_{pin}"), cg.RawExpression(f"{pin}__PWM_{abs_channel}")))
+    cg.add(
+        var.set_pin_mux(
+            cg.RawExpression(f"FMUX_GPIO_FUNCSEL_{pin}"),
+            cg.RawExpression(f"{pin}__PWM_{abs_channel}"),
+        )
+    )

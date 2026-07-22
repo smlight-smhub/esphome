@@ -257,23 +257,20 @@ using ip4_addr_t = in_addr;
 
 #include <cstdio>
 inline int ipaddr_aton(const char *cp, struct in_addr *addr) {
-    int a, b, c, d;
-    if (sscanf(cp, "%d.%d.%d.%d", &a, &b, &c, &d) == 4) {
-        addr->s_addr = a | (b << 8) | (c << 16) | (d << 24);
-        return 1;
-    }
-    return 0;
+  int a, b, c, d;
+  if (sscanf(cp, "%d.%d.%d.%d", &a, &b, &c, &d) == 4) {
+    addr->s_addr = a | (b << 8) | (c << 16) | (d << 24);
+    return 1;
+  }
+  return 0;
 }
 
 #define ip_addr_set_zero(ip) ((ip)->s_addr = 0)
 #define IP_ADDR4(ip, a, b, c, d) ((ip)->s_addr = (a) | ((b) << 8) | ((c) << 16) | ((d) << 24))
 #define ip_addr_copy(dest, src) ((dest).s_addr = (src).s_addr)
 #define ipaddr_ntoa_r(ip, buf, buflen) \
-    snprintf(buf, buflen, "%d.%d.%d.%d", \
-             (int)(((ip)->s_addr) & 0xFF), \
-             (int)(((ip)->s_addr >> 8) & 0xFF), \
-             (int)(((ip)->s_addr >> 16) & 0xFF), \
-             (int)(((ip)->s_addr >> 24) & 0xFF))
+  snprintf(buf, buflen, "%d.%d.%d.%d", (int) (((ip)->s_addr) & 0xFF), (int) (((ip)->s_addr >> 8) & 0xFF), \
+           (int) (((ip)->s_addr >> 16) & 0xFF), (int) (((ip)->s_addr >> 24) & 0xFF))
 #define ip_addr_cmp(ip1, ip2) ((ip1)->s_addr == (ip2)->s_addr)
 #define ip_addr_isany(ip) ((ip)->s_addr == 0)
 #define IP_IS_V4(ip) (true)
@@ -283,29 +280,29 @@ inline int ipaddr_aton(const char *cp, struct in_addr *addr) {
 #define ESPHOME_INADDR_ANY ((uint32_t) 0x00000000UL)
 #define ESPHOME_INADDR_NONE ((uint32_t) 0xFFFFFFFFUL)
 
-#define htons(x) ((((x) & 0xff) << 8) | (((x) & 0xff00) >> 8))
-#define htonl(x) ((((x) & 0xff) << 24) | (((x) & 0xff00) << 8) | (((x) & 0xff0000) >> 8) | (((x) & 0xff000000) >> 24))
+#define htons(x) ((((x) &0xff) << 8) | (((x) &0xff00) >> 8))
+#define htonl(x) ((((x) &0xff) << 24) | (((x) &0xff00) << 8) | (((x) &0xff0000) >> 8) | (((x) &0xff000000) >> 24))
 
 inline uint32_t inet_addr(const char *cp) {
-    struct in_addr val;
-    if (ipaddr_aton(cp, &val)) {
-        return val.s_addr;
-    }
-    return ESPHOME_INADDR_NONE;
+  struct in_addr val;
+  if (ipaddr_aton(cp, &val)) {
+    return val.s_addr;
+  }
+  return ESPHOME_INADDR_NONE;
 }
 
 inline const char *inet_ntop(int af, const void *src, char *dst, socklen_t size) {
-    if (af == AF_INET) {
-        ipaddr_ntoa_r((const struct in_addr*)src, dst, size);
-        return dst;
-    }
-    return nullptr;
+  if (af == AF_INET) {
+    ipaddr_ntoa_r((const struct in_addr *) src, dst, size);
+    return dst;
+  }
+  return nullptr;
 }
 
-#endif // USE_SOCKET_IMPL_RPMSG_SOCKETS
+#endif  // USE_SOCKET_IMPL_RPMSG_SOCKETS
 
-
-#if defined(USE_SOCKET_IMPL_LWIP_TCP) || defined(USE_SOCKET_IMPL_LWIP_SOCKETS) || defined(USE_SOCKET_IMPL_BSD_SOCKETS) || defined(USE_SOCKET_IMPL_RPMSG_SOCKETS)
+#if defined(USE_SOCKET_IMPL_LWIP_TCP) || defined(USE_SOCKET_IMPL_LWIP_SOCKETS) || \
+    defined(USE_SOCKET_IMPL_BSD_SOCKETS) || defined(USE_SOCKET_IMPL_RPMSG_SOCKETS)
 
 namespace esphome::socket {
 

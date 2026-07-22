@@ -871,12 +871,11 @@ def FILTER_SOURCE_FILES() -> list[str]:
         # On SG2000, we always offload Noise encryption to the host,
         # so the device always speaks plaintext via the local socket.
         files_to_filter.append("api_frame_helper_noise.cpp")
-    else:
-        # If encryption is not configured at all, we only need plaintext
-        if encryption_config is None:
-            files_to_filter.append("api_frame_helper_noise.cpp")
-        # If encryption is configured with a key, we only need noise
-        elif encryption_config.get(CONF_KEY):
-            files_to_filter.append("api_frame_helper_plaintext.cpp")
+    # If encryption is not configured at all, we only need plaintext
+    elif encryption_config is None:
+        files_to_filter.append("api_frame_helper_noise.cpp")
+    # If encryption is configured with a key, we only need noise
+    elif encryption_config.get(CONF_KEY):
+        files_to_filter.append("api_frame_helper_plaintext.cpp")
 
     return files_to_filter

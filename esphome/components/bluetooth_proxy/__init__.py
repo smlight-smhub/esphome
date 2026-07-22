@@ -12,6 +12,7 @@ CODEOWNERS = ["@jesserockz", "@bdraco"]
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class DependenciesList(list):
     def __iter__(self):
         try:
@@ -29,7 +30,9 @@ class DependenciesList(list):
             is_esp32 = False
         return 2 if is_esp32 else 1
 
+
 DEPENDENCIES = DependenciesList()
+
 
 class AutoLoadList(list):
     def __iter__(self):
@@ -47,6 +50,7 @@ class AutoLoadList(list):
         except Exception:
             is_esp32 = False
         return 2 if is_esp32 else 0
+
 
 AUTO_LOAD = AutoLoadList()
 

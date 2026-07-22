@@ -10,7 +10,8 @@
 #include "esphome/core/lwip_fast_select.h"
 #endif
 
-#if defined(USE_SOCKET_IMPL_LWIP_TCP) || defined(USE_SOCKET_IMPL_LWIP_SOCKETS) || defined(USE_SOCKET_IMPL_BSD_SOCKETS) || defined(USE_SOCKET_IMPL_RPMSG_SOCKETS)
+#if defined(USE_SOCKET_IMPL_LWIP_TCP) || defined(USE_SOCKET_IMPL_LWIP_SOCKETS) || \
+    defined(USE_SOCKET_IMPL_BSD_SOCKETS) || defined(USE_SOCKET_IMPL_RPMSG_SOCKETS)
 
 // Include only the active implementation's header.
 // SOCKADDR_STR_LEN is defined in headers.h.

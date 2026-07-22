@@ -25,7 +25,7 @@ class Sg2000InternalGPIOPin : public InternalGPIOPin {
   bool digital_read() override;
   void digital_write(bool value) override;
   void detach_interrupt() const override;
-  ISRInternalGPIOPin to_isr() const override { return {const_cast<Sg2000InternalGPIOPin*>(this)}; }
+  ISRInternalGPIOPin to_isr() const override { return {const_cast<Sg2000InternalGPIOPin *>(this)}; }
   uint8_t get_pin() const override { return 0; }
   size_t dump_summary(char *buffer, size_t len) const override;
   bool is_inverted() const override { return inverted_; }

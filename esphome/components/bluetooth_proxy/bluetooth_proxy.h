@@ -230,16 +230,16 @@ class BluetoothProxy : public Component {
   void send_connections_free(api::APIConnection *conn) {}
   void bluetooth_scanner_set_mode(bool active) {}
   void bluetooth_set_connection_params(const api::BluetoothSetConnectionParamsRequest &msg) {}
-  
-  uint32_t get_feature_flags() { 
-      // 1 = PASSIVE_SCANNING
-      // 32 = RAW_ADVERTISEMENTS (1 << 5)
-      return 33; 
+
+  uint32_t get_feature_flags() {
+    // 1 = PASSIVE_SCANNING
+    // 32 = RAW_ADVERTISEMENTS (1 << 5)
+    return 33;
   }
   void get_bluetooth_mac_address_pretty(std::span<char, 18> output) {
-      if (output.size() >= 18) {
-          snprintf(output.data(), 18, "02:11:22:33:44:55");
-      }
+    if (output.size() >= 18) {
+      snprintf(output.data(), 18, "02:11:22:33:44:55");
+    }
   }
 };
 

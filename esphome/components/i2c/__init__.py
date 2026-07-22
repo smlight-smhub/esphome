@@ -217,7 +217,9 @@ CONFIG_SCHEMA = cv.All(
                 ),
                 cv.boolean,
             ),
-            cv.Optional("i2c_id", default=4): cv.All(cv.only_on([PLATFORM_SG2000]), cv.int_range(min=0, max=4)),
+            cv.Optional("i2c_id", default=4): cv.All(
+                cv.only_on([PLATFORM_SG2000]), cv.int_range(min=0, max=4)
+            ),
             cv.Optional(CONF_DEVICE): cv.All(
                 cv.only_on(PLATFORM_HOST), validate_device
             ),
@@ -228,7 +230,8 @@ CONFIG_SCHEMA = cv.All(
             PLATFORM_ESP32,
             PLATFORM_ESP8266,
             PLATFORM_RP2,
-            PLATFORM_NRF52, PLATFORM_SG2000,
+            PLATFORM_NRF52,
+            PLATFORM_SG2000,
             PLATFORM_HOST,
         ]
     ),
