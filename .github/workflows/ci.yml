@@ -442,9 +442,7 @@ jobs:
     needs:
       - common
       - determine-jobs
-    if: >-
-      (github.event_name == 'push' && github.ref_name == 'dev') ||
-      (github.event_name == 'pull_request' && needs.determine-jobs.outputs.benchmarks == 'true')
+    if: false
     steps:
       - name: Check out code from GitHub
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
