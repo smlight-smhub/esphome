@@ -121,16 +121,23 @@ _ESP32_CONFIG_SCHEMA = cv.All(
 )
 
 
-def CONFIG_SCHEMA(value):
-    if not CORE.is_esp32:
-        schema = cv.Schema(
-            {
-                cv.GenerateID(): cv.declare_id(BluetoothProxy),
-                cv.Optional(CONF_ACTIVE, default=True): cv.boolean,
-            }
-        ).extend(cv.COMPONENT_SCHEMA)
-        return schema(value)
-    return _ESP32_CONFIG_SCHEMA(value)
+class _BluetoothProxySchema(cv.All):
+    def __init__(self):
+        super().__init__(*_ESP32_CONFIG_SCHEMA.validators)
+
+    def __call__(self, value):
+        if not CORE.is_esp32:
+            schema = cv.Schema(
+                {
+                    cv.GenerateID(): cv.declare_id(BluetoothProxy),
+                    cv.Optional(CONF_ACTIVE, default=True): cv.boolean,
+                }
+            ).extend(cv.COMPONENT_SCHEMA)
+            return schema(value)
+        return _ESP32_CONFIG_SCHEMA(value)
+
+
+CONFIG_SCHEMA = _BluetoothProxySchema()
 
 
 async def to_code(config):
