@@ -125,16 +125,33 @@ class _BluetoothProxySchema(cv.All):
     def __init__(self):
         super().__init__(*_ESP32_CONFIG_SCHEMA.validators)
 
-    def __call__(self, value):
-        if not CORE.is_esp32:
+    @property
+    def validators(self):
+        is_esp32 = False
+        try:
+            # When generating docs, CORE might not have a target platform
+            # In that case, KeyError is raised, and we default to True for docgen
+            is_esp32 = CORE.is_esp32
+        except (AttributeError, KeyError):
+            return _ESP32_CONFIG_SCHEMA.validators
+
+        if not is_esp32:
             schema = cv.Schema(
                 {
                     cv.GenerateID(): cv.declare_id(BluetoothProxy),
                     cv.Optional(CONF_ACTIVE, default=True): cv.boolean,
                 }
             ).extend(cv.COMPONENT_SCHEMA)
-            return schema(value)
-        return _ESP32_CONFIG_SCHEMA(value)
+            return [schema]
+
+        return _ESP32_CONFIG_SCHEMA.validators
+
+    @validators.setter
+    def validators(self, value):
+        pass
+
+
+CONFIG_SCHEMA = _BluetoothProxySchema()
 
 
 CONFIG_SCHEMA = _BluetoothProxySchema()
