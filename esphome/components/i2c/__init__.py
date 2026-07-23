@@ -217,7 +217,9 @@ CONFIG_SCHEMA = cv.All(
                 ),
                 cv.boolean,
             ),
-            cv.Optional("i2c_id", default=4): cv.All(cv.only_on([PLATFORM_SG2000]), cv.int_range(min=0, max=4)),
+            cv.Optional("i2c_id"): cv.All(
+                cv.only_on([PLATFORM_SG2000]), cv.int_range(min=0, max=4)
+            ),
             cv.Optional(CONF_DEVICE): cv.All(
                 cv.only_on(PLATFORM_HOST), validate_device
             ),
@@ -228,7 +230,8 @@ CONFIG_SCHEMA = cv.All(
             PLATFORM_ESP32,
             PLATFORM_ESP8266,
             PLATFORM_RP2,
-            PLATFORM_NRF52, PLATFORM_SG2000,
+            PLATFORM_NRF52,
+            PLATFORM_SG2000,
             PLATFORM_HOST,
         ]
     ),
@@ -345,7 +348,7 @@ async def to_code(config):
         await cg.register_component(var, config)
 
     if CORE.is_sg2000:
-        cg.add(var.set_i2c_id(config["i2c_id"]))
+        cg.add(var.set_i2c_id(config.get("i2c_id", 4)))
 
         cg.add(var.set_sda_pin(config[CONF_SDA]))
         if CONF_SDA_PULLUP_ENABLED in config:

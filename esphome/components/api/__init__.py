@@ -501,8 +501,11 @@ async def to_code(config: ConfigType) -> None:
                 cg.add_define("USE_API_NOISE_PSK_FROM_YAML")
             else:
                 # No key provided, but encryption desired
-                # This will allow a plaintext client to provide a noise key,
-                # send it to the device, and then switch to noise.
+                # Until a key is set, the device accepts both Noise connections
+                # using the well-known all-zeros PSK (preferred: the key travels
+                # encrypted, protecting against passive sniffing) and plaintext
+                # connections (deprecated, remove after 2027.2.0) so a client can
+                # provide a noise key and the device then switches to noise only.
                 # The key will be saved in flash and used for future connections
                 # and plaintext disabled. Only a factory reset can remove it.
                 cg.add_define("USE_API_PLAINTEXT")
@@ -868,12 +871,11 @@ def FILTER_SOURCE_FILES() -> list[str]:
         # On SG2000, we always offload Noise encryption to the host,
         # so the device always speaks plaintext via the local socket.
         files_to_filter.append("api_frame_helper_noise.cpp")
-    else:
-        # If encryption is not configured at all, we only need plaintext
-        if encryption_config is None:
-            files_to_filter.append("api_frame_helper_noise.cpp")
-        # If encryption is configured with a key, we only need noise
-        elif encryption_config.get(CONF_KEY):
-            files_to_filter.append("api_frame_helper_plaintext.cpp")
+    # If encryption is not configured at all, we only need plaintext
+    elif encryption_config is None:
+        files_to_filter.append("api_frame_helper_noise.cpp")
+    # If encryption is configured with a key, we only need noise
+    elif encryption_config.get(CONF_KEY):
+        files_to_filter.append("api_frame_helper_plaintext.cpp")
 
     return files_to_filter

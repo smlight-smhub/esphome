@@ -490,9 +490,7 @@ namespace bluetooth_proxy {
 
 BluetoothProxy *global_bluetooth_proxy = nullptr;
 
-void BluetoothProxy::setup() {
-  global_bluetooth_proxy = this;
-}
+void BluetoothProxy::setup() { global_bluetooth_proxy = this; }
 
 void BluetoothProxy::loop() {}
 

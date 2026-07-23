@@ -156,6 +156,7 @@ FINAL_VALIDATE_SCHEMA = ota_esphome_final_validate
 @coroutine_with_priority(CoroPriority.OTA_UPDATES)
 async def to_code(config: ConfigType) -> None:
     from esphome.const import PLATFORM_SG2000
+
     if CORE.target_platform == PLATFORM_SG2000:
         return
 

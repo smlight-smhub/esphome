@@ -163,37 +163,16 @@ class Platform(StrEnum):
     RP2040_ARD = "rp2040-ard"  # RP2 family, RP2040 chip (Pico / Pico W)
     RP2350_ARD = "rp2350-ard"  # RP2 family, RP2350 chip (Pico 2 / Pico 2 W)
     NRF52_ZEPHYR = "nrf52-adafruit"  # Nordic nRF52 (Zephyr)
+    SG2000 = "sg2000"
 
 
 # Memory impact analysis constants
 MEMORY_IMPACT_FALLBACK_COMPONENT = "api"  # Representative component for core changes
-MEMORY_IMPACT_FALLBACK_PLATFORM = Platform.ESP32_IDF  # Most representative platform
+MEMORY_IMPACT_FALLBACK_PLATFORM = Platform.SG2000  # Most representative platform
 MEMORY_IMPACT_MAX_COMPONENTS = 40  # Max components before results become nonsensical
 
-# Platform preference order for memory impact analysis
-# This order is used when no platform-specific hints are detected from filenames
-# Priority rationale:
-# 1. ESP32-C6 IDF - Newest platform, supports Thread/Zigbee
-# 2. ESP8266 Arduino - Most memory constrained (best for detecting memory impact),
-#                      fastest build times, most sensitive to code size changes
-# 3. ESP32 IDF - Primary ESP32 platform, most representative of modern ESPHome
-# 4-6. Other ESP32 variants - Less commonly used but still supported
-# 7-9. LibreTiny platforms (BK72XX, RTL87XX, LN882X) - good for detecting LibreTiny-specific changes
-# 10. RP2040 - Raspberry Pi Pico platform
-# 11. nRF52 - Nordic nRF52 with Zephyr (good for detecting Zephyr-specific changes)
 MEMORY_IMPACT_PLATFORM_PREFERENCE = [
-    Platform.ESP32_C6_IDF,  # ESP32-C6 IDF (newest, supports Thread/Zigbee)
-    Platform.ESP8266_ARD,  # ESP8266 Arduino (most memory constrained, fastest builds)
-    Platform.ESP32_IDF,  # ESP32 IDF platform (primary ESP32 platform, most representative)
-    Platform.ESP32_C3_IDF,  # ESP32-C3 IDF
-    Platform.ESP32_S2_IDF,  # ESP32-S2 IDF
-    Platform.ESP32_S3_IDF,  # ESP32-S3 IDF
-    Platform.BK72XX_ARD,  # LibreTiny BK7231N
-    Platform.RTL87XX_ARD,  # LibreTiny RTL8720x
-    Platform.LN882X_ARD,  # LibreTiny LN882x
-    Platform.RP2040_ARD,  # Raspberry Pi Pico (RP2040)
-    Platform.RP2350_ARD,  # Raspberry Pi Pico 2 (RP2350)
-    Platform.NRF52_ZEPHYR,  # Nordic nRF52 (Zephyr)
+    Platform.SG2000,
 ]
 
 
@@ -872,51 +851,8 @@ def _detect_platform_hint_from_filename(filename: str) -> Platform | None:
     """
     filename_lower = filename.lower()
 
-    # ESP-IDF platforms (check specific variants first)
-    if "esp_idf" in filename_lower or "_idf" in filename_lower:
-        # Check for specific ESP32 variants
-        if "c6" in filename_lower or "esp32c6" in filename_lower:
-            return Platform.ESP32_C6_IDF
-        if "c3" in filename_lower or "esp32c3" in filename_lower:
-            return Platform.ESP32_C3_IDF
-        if "s2" in filename_lower or "esp32s2" in filename_lower:
-            return Platform.ESP32_S2_IDF
-        if "s3" in filename_lower or "esp32s3" in filename_lower:
-            return Platform.ESP32_S3_IDF
-        # Default to ESP32 IDF for generic esp_idf files
-        return Platform.ESP32_IDF
-
-    # ESP8266 Arduino
-    if "esp8266" in filename_lower:
-        return Platform.ESP8266_ARD
-
-    # Generic ESP32 (without _idf suffix, could be Arduino or shared code)
-    # Prefer IDF as it's the modern platform
-    if "esp32" in filename_lower:
-        return Platform.ESP32_IDF
-
-    # LibreTiny platforms (check specific variants before generic libretiny)
-    # Check specific variants first to handle paths like libretiny/wifi_rtl87xx.cpp
-    if "rtl87" in filename_lower:
-        return Platform.RTL87XX_ARD
-    if "ln882" in filename_lower:
-        return Platform.LN882X_ARD
-    if "libretiny" in filename_lower or "bk72" in filename_lower:
-        return Platform.BK72XX_ARD
-
-    # RP2 family (Raspberry Pi Pico): explicit chip names only. Family-
-    # wide files (named ``_rp2.*``) are shared between RP2040 and RP2350
-    # and intentionally don't preferentially route to either chip.
-    # Check the RP2350 patterns first since ``pico2`` substring-matches
-    # ``pico``.
-    if "rp2350" in filename_lower or "pico2" in filename_lower:
-        return Platform.RP2350_ARD
-    if "rp2040" in filename_lower or "pico" in filename_lower:
-        return Platform.RP2040_ARD
-
-    # nRF52 / Zephyr
-    if "nrf52" in filename_lower or "zephyr" in filename_lower:
-        return Platform.NRF52_ZEPHYR
+    if "sg2000" in filename_lower:
+        return Platform.SG2000
 
     return None
 

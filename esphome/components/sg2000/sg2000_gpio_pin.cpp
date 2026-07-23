@@ -11,12 +11,10 @@ namespace esphome {
 namespace sg2000 {
 
 static const char *const TAG_GPIO = "sg2000.gpio";
-static std::map<std::string, Sg2000InternalGPIOPin*> pin_registry;
+static std::map<std::string, Sg2000InternalGPIOPin *> pin_registry;
 static std::map<std::string, InterruptHandler> interrupt_registry;
 
-void register_pin(Sg2000InternalGPIOPin* pin, const std::string &pin_name) {
-  pin_registry[pin_name] = pin;
-}
+void register_pin(Sg2000InternalGPIOPin *pin, const std::string &pin_name) { pin_registry[pin_name] = pin; }
 
 void register_interrupt(const std::string &pin_name, void (*func)(void *), void *arg, gpio::InterruptType type) {
   InterruptHandler handler = {func, arg, type};
@@ -32,9 +30,12 @@ void trigger_interrupt(const std::string &pin_name, bool new_state) {
   auto it = interrupt_registry.find(pin_name);
   if (it != interrupt_registry.end()) {
     bool trigger = false;
-    if (it->second.type == gpio::INTERRUPT_ANY_EDGE) trigger = true;
-    else if (it->second.type == gpio::INTERRUPT_RISING_EDGE && new_state) trigger = true;
-    else if (it->second.type == gpio::INTERRUPT_FALLING_EDGE && !new_state) trigger = true;
+    if (it->second.type == gpio::INTERRUPT_ANY_EDGE)
+      trigger = true;
+    else if (it->second.type == gpio::INTERRUPT_RISING_EDGE && new_state)
+      trigger = true;
+    else if (it->second.type == gpio::INTERRUPT_FALLING_EDGE && !new_state)
+      trigger = true;
 
     if (trigger && it->second.func != nullptr) {
       it->second.func(it->second.arg);
@@ -66,23 +67,30 @@ void Sg2000InternalGPIOPin::pin_mode(gpio::Flags flags) {
   this->flags_ = flags;
   int32_t mode = (flags & gpio::FLAG_OUTPUT) ? 1 : 0;
   int32_t bias = 0;
-  if (flags & gpio::FLAG_PULLUP) bias = 1;
-  else if (flags & gpio::FLAG_PULLDOWN) bias = 2;
+  if (flags & gpio::FLAG_PULLUP)
+    bias = 1;
+  else if (flags & gpio::FLAG_PULLDOWN)
+    bias = 2;
   send_gpio_config(this->pin_name_, mode, 0, bias);
 }
 
 void Sg2000InternalGPIOPin::attach_interrupt(void (*func)(void *), void *arg, gpio::InterruptType type) const {
   register_interrupt(this->pin_name_, func, arg, type);
-  
+
   int32_t mode = (this->flags_ & gpio::FLAG_OUTPUT) ? 1 : 0;
   int32_t edge = 0;
-  if (type == gpio::INTERRUPT_RISING_EDGE) edge = 1;
-  else if (type == gpio::INTERRUPT_FALLING_EDGE) edge = 2;
-  else if (type == gpio::INTERRUPT_ANY_EDGE) edge = 3;
+  if (type == gpio::INTERRUPT_RISING_EDGE)
+    edge = 1;
+  else if (type == gpio::INTERRUPT_FALLING_EDGE)
+    edge = 2;
+  else if (type == gpio::INTERRUPT_ANY_EDGE)
+    edge = 3;
 
   int32_t bias = 0;
-  if (this->flags_ & gpio::FLAG_PULLUP) bias = 1;
-  else if (this->flags_ & gpio::FLAG_PULLDOWN) bias = 2;
+  if (this->flags_ & gpio::FLAG_PULLUP)
+    bias = 1;
+  else if (this->flags_ & gpio::FLAG_PULLDOWN)
+    bias = 2;
 
   send_gpio_config(this->pin_name_, mode, edge, bias);
 }
@@ -91,14 +99,14 @@ void Sg2000InternalGPIOPin::detach_interrupt() const {
   interrupt_registry.erase(this->pin_name_);
   int32_t mode = (this->flags_ & gpio::FLAG_OUTPUT) ? 1 : 0;
   int32_t bias = 0;
-  if (this->flags_ & gpio::FLAG_PULLUP) bias = 1;
-  else if (this->flags_ & gpio::FLAG_PULLDOWN) bias = 2;
+  if (this->flags_ & gpio::FLAG_PULLUP)
+    bias = 1;
+  else if (this->flags_ & gpio::FLAG_PULLDOWN)
+    bias = 2;
   send_gpio_config(this->pin_name_, mode, 0, bias);
 }
 
-bool Sg2000InternalGPIOPin::digital_read() {
-  return this->inverted_ ? !this->state_ : this->state_;
-}
+bool Sg2000InternalGPIOPin::digital_read() { return this->inverted_ ? !this->state_ : this->state_; }
 
 void Sg2000InternalGPIOPin::digital_write(bool value) {
   this->state_ = value;
@@ -114,7 +122,7 @@ void Sg2000InternalGPIOPin::digital_write(bool value) {
 }  // namespace sg2000
 }  // namespace esphome
 
-extern "C" void smhub_ipc_gpio_edge_cb(const char* pin_name, bool state) {
+extern "C" void smhub_ipc_gpio_edge_cb(const char *pin_name, bool state) {
   std::string name(pin_name);
   esphome::sg2000::trigger_interrupt(name, state);
 }
@@ -122,21 +130,23 @@ extern "C" void smhub_ipc_gpio_edge_cb(const char* pin_name, bool state) {
 namespace esphome {
 
 bool ISRInternalGPIOPin::digital_read() {
-  if (this->arg_ == nullptr) return false;
-  return reinterpret_cast<esphome::sg2000::Sg2000InternalGPIOPin*>(this->arg_)->digital_read();
+  if (this->arg_ == nullptr)
+    return false;
+  return reinterpret_cast<esphome::sg2000::Sg2000InternalGPIOPin *>(this->arg_)->digital_read();
 }
 
 void ISRInternalGPIOPin::digital_write(bool value) {
-  if (this->arg_ == nullptr) return;
-  reinterpret_cast<esphome::sg2000::Sg2000InternalGPIOPin*>(this->arg_)->digital_write(value);
+  if (this->arg_ == nullptr)
+    return;
+  reinterpret_cast<esphome::sg2000::Sg2000InternalGPIOPin *>(this->arg_)->digital_write(value);
 }
 
-void ISRInternalGPIOPin::clear_interrupt() {
-}
+void ISRInternalGPIOPin::clear_interrupt() {}
 
 void ISRInternalGPIOPin::pin_mode(gpio::Flags flags) {
-  if (this->arg_ == nullptr) return;
-  reinterpret_cast<esphome::sg2000::Sg2000InternalGPIOPin*>(this->arg_)->pin_mode(flags);
+  if (this->arg_ == nullptr)
+    return;
+  reinterpret_cast<esphome::sg2000::Sg2000InternalGPIOPin *>(this->arg_)->pin_mode(flags);
 }
 
 }  // namespace esphome

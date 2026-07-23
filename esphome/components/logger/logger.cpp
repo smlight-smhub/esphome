@@ -118,7 +118,7 @@ void Logger::log_vprintf_non_main_thread_(uint8_t level, const char *tag, int li
 #else
 // Implementation for single-task platforms (ESP8266, RP2040)
 #ifdef USE_SG2000
-extern "C" void uart_puts(const char* str);
+extern "C" void uart_puts(const char *str);
 #endif
 // Logging calls are NOT thread-safe: global_recursion_guard_ is a plain bool and tx_buffer_ has no locking.
 // Not a problem in practice yet since Zephyr has no API support (logs are console-only).

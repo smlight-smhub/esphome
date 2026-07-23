@@ -1,9 +1,14 @@
 # Copyright 2026 SMLIGHT
 
+import os
+
+from esphome import pins
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.const import (
     CONF_BOARD,
+    CONF_ID,
+    CONF_NUMBER,
     KEY_CORE,
     KEY_FRAMEWORK_VERSION,
     KEY_TARGET_FRAMEWORK,
@@ -13,10 +18,7 @@ from esphome.const import (
 )
 from esphome.core import CORE
 
-import os
 from .const import KEY_SG2000
-from esphome import pins
-from esphome.const import CONF_NUMBER, CONF_ID
 
 sg2000_ns = cg.esphome_ns.namespace("sg2000")
 Sg2000InternalGPIOPin = sg2000_ns.class_("Sg2000InternalGPIOPin", cg.InternalGPIOPin)
@@ -30,6 +32,7 @@ SG2000_PIN_SCHEMA = cv.All(
     )
 )
 
+
 @pins.PIN_SCHEMA_REGISTRY.register("sg2000", SG2000_PIN_SCHEMA)
 async def sg2000_pin_to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
@@ -38,11 +41,13 @@ async def sg2000_pin_to_code(config):
     cg.add(var.set_flags(pins.gpio_flags_expr(config.get(pins.CONF_MODE, "INPUT"))))
     return var
 
+
 CODEOWNERS = ["@esphome/core"]
 AUTO_LOAD = ["network", "socket"]
 IS_TARGET_PLATFORM = True
 
 CONF_VERSION = "version"
+
 
 def set_core_data(config):
     CORE.data[KEY_SG2000] = {}
@@ -53,6 +58,7 @@ def set_core_data(config):
         CORE.raw_config["esphome"].setdefault("name_add_mac_suffix", True)
     return config
 
+
 CONFIG_SCHEMA = cv.All(
     cv.Schema(
         {
@@ -62,6 +68,7 @@ CONFIG_SCHEMA = cv.All(
     ),
     set_core_data,
 )
+
 
 async def to_code(config):
     cg.add_global(sg2000_ns.using)
@@ -77,17 +84,20 @@ async def to_code(config):
         version_val = config[CONF_VERSION]
     else:
         from esphome.const import __version__
+
         version_val = __version__
         if version_val.endswith("-dev"):
             version_val = version_val.replace("-dev", "-clean")
 
-    cg.add_define("ESPHOME_FIRMWARE_VERSION_STR", f'"===ESPHOME_BIN_VERSION:{version_val}==="')
-    
+    cg.add_define(
+        "ESPHOME_FIRMWARE_VERSION_STR", f'"===ESPHOME_BIN_VERSION:{version_val}==="'
+    )
+
     # The xPack GCC 15 toolchain natively supports RISC-V hardware atomics (lr.w/sc.w).
     # We use ThreadModel.MULTI_ATOMICS to eliminate FreeRTOS Critical Section overhead
     # and utilize lock-free data structures.
     cg.add_define(ThreadModel.MULTI_ATOMICS)
-    
+
     cg.add_platformio_option(
         "platform", "https://github.com/smlight-smhub/platform-sg2000.git"
     )
