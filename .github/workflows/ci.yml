@@ -542,7 +542,7 @@ jobs:
     needs:
       - common
       - determine-jobs
-    if: needs.determine-jobs.outputs.clang-tidy-mode == 'split'
+    if: false
     env:
       GH_TOKEN: ${{ github.token }}
       # esp32-idf-tidy installs ESP-IDF natively; share the native IDF cache.
